@@ -9,7 +9,7 @@ def get_ipv6():
         return s.getsockname()[0]
 
     except Exception as e:
-        return "获取失败 - {e}"
+        return f"获取失败 - {e}"
 
     finally:
         if s:

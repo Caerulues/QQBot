@@ -185,19 +185,36 @@ def read_log_from_position(position: int) -> tuple[str, int]:
 
 
 async def get_tps_mspt_info():
+    """
+    通过 RCON 调用 spark tps 并解析日志。
+    若 RCON 不可用、spark 未安装或日志不可读，不影响基础在线信息展示。
+    """
     if MC_LOG_PATH.exists():
         start_position = MC_LOG_PATH.stat().st_size
     else:
         start_position = 0
 
-    run_rcon("spark tps")
+    try:
+        response = run_rcon("spark tps")
+    except Exception as e:
+        print(f"[mc_info] RCON/spark unavailable: {e}")
+        return "未知", "未知"
+
+    if response and any(key in clean_mc_color(response).lower() for key in ["unknown", "not found", "不存在"]):
+        print(f"[mc_info] spark command unavailable: {response}")
+        return "未知", "未知"
 
     # spark tps 是异步输出，稍微等一下日志写入
     await asyncio.sleep(1.5)
 
-    text, _ = read_log_from_position(start_position)
+    try:
+        text, _ = read_log_from_position(start_position)
+    except Exception as e:
+        print(f"[mc_info] read spark log failed: {e}")
+        return "未知", "未知"
 
-    return parse_spark_tps(text)
+    tps, mspt = parse_spark_tps(text)
+    return tps, mspt
 
 
 # ===== 输出格式 =====

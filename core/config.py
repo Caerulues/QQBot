@@ -12,6 +12,7 @@ class ServerConfig:
     path: str
     command: str
     terminal_title: str
+    launch_mode: str = "auto"
 
 
 @dataclass
@@ -37,6 +38,7 @@ class QQConfig:
     bridge_group_id: int | None
     event_group_id: int | None
     bot_ids: set[int]
+    ping_user_id: int | None = None
 
 
 @dataclass
@@ -70,6 +72,7 @@ def load_config() -> BotConfig:
             path=server_path,
             command=server.get("command", ""),
             terminal_title=server.get("terminal_title", "MINECRAFT_SERVER_TERMINAL"),
+            launch_mode=server.get("launch_mode", "auto"),
         ),
         rcon=RconConfig(
             host=rcon.get("host", "127.0.0.1"),
@@ -89,6 +92,7 @@ def load_config() -> BotConfig:
             bridge_group_id=qq.get("bridge_group_id"),
             event_group_id=qq.get("event_group_id"),
             bot_ids=set(qq.get("bot_ids", [])),
+            ping_user_id=qq.get("ping_user_id"),
         ),
         data_dir=str(BASE_DIR / raw.get("data_dir", "data")),
     )

@@ -1,0 +1,29 @@
+data_dir = "data"
+
+[server]
+path = ""
+command = "java -Xms1024M -Xmx4096M -jar server.jar nogui"
+terminal_title = "MINECRAFT_SERVER_TERMINAL"
+# auto: macOS 使用 Terminal，Windows/Linux 使用 subprocess；也可设为 terminal 或 subprocess
+launch_mode = "auto"
+
+[rcon]
+host = "127.0.0.1"
+port = 25575
+password = ""
+
+[minecraft]
+port = 25565
+name = "Minecraft Server"
+status_address = "127.0.0.1:25565"
+log_path = ""
+ping_target = "test6.ustc.edu.cn"
+
+[qq]
+admin_users = []
+groups = []
+bridge_group_id = 0
+event_group_id = 0
+bot_ids = []
+# 可选：指定 .ping 的固定私聊测试对象；留空则在当前会话测试
+# ping_user_id = 0
