@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# PyCharm
+.idea/
+
+# Local secrets
+.env
+config.toml
+.env
+data/
+logs/
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.venv/
+venv/
+env/
+.cache/
+*.log
+__MACOSX/
+
+# Runtime data
+data/
+logs/
+
+# NoneBot / runtime cache
+.cache/
+*.log
