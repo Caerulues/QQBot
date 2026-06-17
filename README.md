@@ -452,4 +452,4 @@ Minecraft 玩家聊天会转发到 QQ：
 
 ## LICENSE
 
-MIT © Caerulues
+MIT License © 2026 Caerulues
