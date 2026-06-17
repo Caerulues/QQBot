@@ -448,3 +448,8 @@ Minecraft 玩家聊天会转发到 QQ：
 | `data/ip/ipv6.json` | 保存上一次检测到的 IPv6 地址 |
 | `data/server_terminal.json` | 保存 Minecraft Terminal 窗口 ID |
 
+---
+
+## LICENSE
+
+MIT © Caerulues
