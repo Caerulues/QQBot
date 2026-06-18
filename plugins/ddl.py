@@ -63,6 +63,7 @@ def save_data(user_id: int, data):
 # MARK: 提醒规则（动态）
 
 REMIND_STAGES = [
+    (0, "remind_now", "now"),
     (3600, "reminded_1h", "1h"),
     (86400, "reminded_1d", "1d"),
     (7 * 86400, "reminded_1w", "1w"),
@@ -82,13 +83,6 @@ def should_remind(item, remain):
     return None
 
 def mark_current_and_wider_stages(item, current_index: int):
-    """
-    当前阶段触发后，把当前阶段以及更宽松阶段都标记为已提醒。
-
-    例如：
-    触发 1d，则同时标记 1d 和 1w。
-    触发 1h，则同时标记 1h、1d、1w。
-    """
     for _, flag, _ in REMIND_STAGES[current_index:]:
         item[flag] = True
 
@@ -129,7 +123,7 @@ def parse_ddl_line(text: str):
         }
 
     except Exception as e:
-        print(f"[DDL Parse Error] {e}")
+        print(f"[Parse Error] {e}")
         return None
 
 # MARK: 字体
@@ -447,6 +441,9 @@ async def ddl_reminder():
 
                     elif remind_type == "1h":
                         msg += " 将于一小时内截止"
+
+                    elif remind_type == "now":
+                        msg += " 已经截止"
 
                     mark_current_and_wider_stages(item, current_index)
 
