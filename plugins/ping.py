@@ -8,19 +8,13 @@ from core.config import config
 
 ping = on_command("ping", priority=5, block=True)
 
-
 async def send_ping_probe(bot: Bot, event: MessageEvent):
-    """
-    在当前会话发送测试消息，避免硬编码私聊 QQ 号。
-    如需继续使用固定私聊目标，可在 config.toml 中增加 [qq].ping_user_id。
-    """
     target_user = getattr(config.qq, "ping_user_id", None)
 
     if target_user:
         return await bot.send_private_msg(user_id=target_user, message="Testing ping...")
 
     return await bot.send(event, "Testing ping...")
-
 
 @ping.handle()
 async def _(bot: Bot, event: MessageEvent):

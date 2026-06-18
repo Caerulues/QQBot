@@ -39,11 +39,6 @@ stop_minecraft_server = on_command("stop_server", priority=5, block=True)
 
 
 def get_launch_mode() -> str:
-    """
-    auto: macOS 使用 Terminal；其他系统使用 subprocess。
-    terminal: 强制 macOS Terminal。
-    subprocess: 跨平台后台子进程。
-    """
     if SERVER_LAUNCH_MODE in {"terminal", "subprocess"}:
         return SERVER_LAUNCH_MODE
     return "terminal" if is_macos() else "subprocess"
@@ -194,7 +189,6 @@ async def _(event: MessageEvent):
     stopped_command_sent = False
     errors = []
 
-    # 先尝试 macOS Terminal。若窗口被手动关闭，则按标题恢复；恢复失败后改用 RCON。
     if is_macos():
         if not minecraft_window_id:
             minecraft_window_id = await restore_minecraft_window_id()

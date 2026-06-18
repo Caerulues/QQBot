@@ -8,7 +8,6 @@ from core.ipv6 import get_ipv6
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
 
-
 from core.config import config
 
 GROUP_IDS = config.qq.groups
@@ -19,10 +18,8 @@ JOB_ID = "minecraft_ipv6_monitor"
 
 server_running = False
 
-
 def get_ip_file():
     return IP_FILE_PATH / "ipv6.json"
-
 
 def load_ip() -> str:
     file = get_ip_file()
@@ -38,7 +35,6 @@ def load_ip() -> str:
         logger.warning(f"读取IPv6记录失败: {e}")
         return ""
 
-
 def save_ip(ipv6: str):
     file = get_ip_file()
 
@@ -49,7 +45,6 @@ def save_ip(ipv6: str):
             ensure_ascii=False,
             indent=2
         )
-
 
 async def send_ipv6_to_groups(ipv6: str, reason: str):
     bot = get_bot()
@@ -67,7 +62,6 @@ async def send_ipv6_to_groups(ipv6: str, reason: str):
             )
         except Exception as e:
             logger.warning(f"IPv6消息发送到群 {group_id} 失败: {e}")
-
 
 async def check_ipv6(force_send: bool = False, require_running: bool = True):
     if require_running and not server_running:
@@ -102,12 +96,10 @@ async def check_ipv6(force_send: bool = False, require_running: bool = True):
     save_ip(ipv6)
     await send_ipv6_to_groups(ipv6, "已更新")
 
-
 async def start_ipv6_monitor(force_send: bool = True):
     global server_running
 
     server_running = True
-
     await check_ipv6(force_send=force_send, require_running=False)
 
     if scheduler.get_job(JOB_ID):
@@ -123,7 +115,6 @@ async def start_ipv6_monitor(force_send: bool = True):
     )
 
     logger.info("Minecraft IPv6 monitor 已启动")
-
 
 def stop_ipv6_monitor():
     global server_running

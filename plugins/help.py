@@ -1,9 +1,8 @@
 import json
 import io
-import platform
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from nonebot import on_command
 from nonebot.params import CommandArg

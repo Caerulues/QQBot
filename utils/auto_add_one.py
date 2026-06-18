@@ -1,13 +1,10 @@
 from collections import defaultdict
-
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
-
 from utils.recall_map import add
+from core.config import config
 
 repeat = on_message(priority=5, block=False)
-
-from core.config import config
 
 ALLOW_GROUPS = config.qq.groups
 BOT_ID = config.qq.bot_ids
@@ -43,9 +40,7 @@ async def _(event: GroupMessageEvent):
 
     if should_repeat:
         sent = await repeat.send(msg)
-
         add(event.message_id, sent["message_id"])
-
         repeated[group_id] = True
 
     elif last_msg[group_id] != msg:

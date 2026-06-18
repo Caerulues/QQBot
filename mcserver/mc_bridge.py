@@ -1,4 +1,3 @@
-import asyncio
 import json
 import re
 from pathlib import Path
@@ -33,7 +32,7 @@ QQ_TO_MC_PREFIX = "[QQ]"
 FORWARD_BOT_SELF = False
 
 
-# ===== 工具函数 =====
+# MARK: 工具函数
 
 def clean_qq_text(text: str) -> str:
     """
@@ -117,15 +116,13 @@ async def send_to_qq(player_name: str, message: str):
         message=f"[MC] {player_name}：{message}"
     )
 
-
-# ===== QQ -> Minecraft =====
+# MARK: QQ -> Minecrafft
 
 qq_to_mc = on_message(
     rule=is_type(GroupMessageEvent),
     priority=20,
     block=False
 )
-
 
 @qq_to_mc.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
@@ -143,7 +140,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if not raw_msg:
         return
 
-    # 不转发命令，避免 .help、.ddl、.run_server 等进入 MC
+    # 不转发命令
     if raw_msg.startswith(".") or raw_msg.startswith("/"):
         return
 
@@ -164,7 +161,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         print(f"[mc_bridge] QQ -> MC 转发失败: {e}")
 
 
-# ===== Minecraft -> QQ =====
+# MARK: Minecraft -> QQ
 
 MC_CHAT_PATTERNS = [
     # 常见 Vanilla / Paper 日志格式：

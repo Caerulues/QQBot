@@ -1,5 +1,5 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent
 
 from utils.recall_map import add
 from core.ipv6 import get_ipv6

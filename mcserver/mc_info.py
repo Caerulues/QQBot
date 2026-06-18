@@ -1,6 +1,5 @@
 import asyncio
 import re
-import time
 from pathlib import Path
 
 from nonebot import on_command
@@ -10,7 +9,6 @@ from mcstatus import JavaServer
 from mcrcon import MCRcon
 
 from utils.recall_map import add
-
 
 mc_info = on_command(
     "mcinfo",
@@ -31,30 +29,14 @@ RCON_PASSWORD = config.rcon.password
 
 MC_LOG_PATH = Path(config.minecraft.log_path)
 
-
-# ===== 通用工具 =====
-
 def clean_mc_color(text: str) -> str:
-    """
-    去掉 Minecraft 颜色代码，例如 §a、§c、§r。
-    """
     return re.sub(r"§.", "", text).strip()
 
 def run_rcon(command: str) -> str:
     with MCRcon(RCON_HOST, RCON_PASSWORD, port=RCON_PORT, timeout=5) as mcr:
         return mcr.command(command)
 
-
-# ===== ping6出站延迟 =====
-
 async def ping(target: str = "test6.ustc.edu.cn") -> str:
-    """
-    只发送 1 次 IPv6 ping，返回延迟文本。
-    例如：23ms
-
-    注意：这是服务器本机 -> 外网目标 的出站 IPv6 延迟，
-    不是外网玩家 -> Minecraft服务器 的入站延迟。
-    """
     try:
         proc = await asyncio.create_subprocess_exec(
             "ping6",
@@ -100,13 +82,7 @@ async def ping(target: str = "test6.ustc.edu.cn") -> str:
         return "未知"
 
 
-# ===== 在线人数 / 玩家名 / 版本 / 本机握手延迟 =====
-
 async def get_status_info():
-    """
-    返回：
-    server_version, online, max_players, latency_ms, player_names
-    """
     server = await JavaServer.async_lookup(MC_STATUS_ADDRESS, timeout=5)
     status = await server.async_status()
 
@@ -122,14 +98,9 @@ async def get_status_info():
 
     return server_version, online, max_players, latency_ms, player_names
 
-
-# ===== TPS / MSPT =====
-
 def parse_spark_tps(text: str) -> tuple[str, str]:
     text = clean_mc_color(text)
 
-    # 去掉日志前缀，例如：
-    # [21:24:18] [spark-worker-pool-1-thread-3/INFO]: [⚡]
     lines = []
     for line in text.splitlines():
         line = re.sub(r"^\[[^\]]+\] \[[^\]]+\]:\s*", "", line)
@@ -141,7 +112,6 @@ def parse_spark_tps(text: str) -> tuple[str, str]:
     mspt = "未知"
 
     for i, line in enumerate(lines):
-        # 找到 TPS 标题行，下一行就是 TPS 数字列表
         if "TPS from last" in line:
             if i + 1 < len(lines):
                 tps_line = lines[i + 1]
@@ -151,12 +121,10 @@ def parse_spark_tps(text: str) -> tuple[str, str]:
                 if nums:
                     tps = nums[0]
 
-        # 找到 Tick durations 标题行，下一行就是 MSPT 数字列表
         if "Tick durations" in line:
             if i + 1 < len(lines):
                 mspt_line = lines[i + 1]
 
-                # 例：8.5/9.8/12.0/18.9;  8.4/9.6/12.0/22.0
                 groups = re.findall(
                     r"([0-9]+(?:\.[0-9]+)?)/([0-9]+(?:\.[0-9]+)?)/([0-9]+(?:\.[0-9]+)?)/([0-9]+(?:\.[0-9]+)?)",
                     mspt_line
@@ -164,9 +132,6 @@ def parse_spark_tps(text: str) -> tuple[str, str]:
 
                 if groups:
                     first_group = groups[0]
-
-                    # min / med / 95%ile / max
-                    # 这里取 med，也就是第二个值
                     mspt = first_group[1]
 
     return tps, mspt
@@ -185,10 +150,6 @@ def read_log_from_position(position: int) -> tuple[str, int]:
 
 
 async def get_tps_mspt_info():
-    """
-    通过 RCON 调用 spark tps 并解析日志。
-    若 RCON 不可用、spark 未安装或日志不可读，不影响基础在线信息展示。
-    """
     if MC_LOG_PATH.exists():
         start_position = MC_LOG_PATH.stat().st_size
     else:
@@ -204,7 +165,6 @@ async def get_tps_mspt_info():
         print(f"[mc_info] spark command unavailable: {response}")
         return "未知", "未知"
 
-    # spark tps 是异步输出，稍微等一下日志写入
     await asyncio.sleep(1.5)
 
     try:
@@ -215,9 +175,6 @@ async def get_tps_mspt_info():
 
     tps, mspt = parse_spark_tps(text)
     return tps, mspt
-
-
-# ===== 输出格式 =====
 
 def format_player_names(player_names: list[str]) -> str:
     anonymous_count = 0

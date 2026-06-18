@@ -1,8 +1,7 @@
 import json
-import uuid
 import jionlp as jio
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import io
 import textwrap
 
@@ -11,12 +10,9 @@ from datetime import datetime
 
 from nonebot import on_command, require, get_bot
 from nonebot.adapters.onebot.v11 import (
-    Bot,
-    Message,
     GroupMessageEvent,
     MessageSegment
 )
-from nonebot.rule import is_type
 
 require("nonebot_plugin_apscheduler")
 
@@ -25,7 +21,6 @@ from nonebot_plugin_apscheduler import scheduler
 from utils.recall_map import add
 from plugins.help import get_help
 from core.json_store import (
-    get_user_file,
     load_data,
     save_data
 )
