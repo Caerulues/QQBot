@@ -21,7 +21,7 @@ from core.terminal_state import (
     load_minecraft_pid,
     save_minecraft_pid,
 )
-from utils.revocable_send import revocable_send
+from utils.recall_map import add
 from utils.ipv6_monitor import start_ipv6_monitor, stop_ipv6_monitor
 from core.config import config
 
@@ -136,12 +136,14 @@ async def _(event: MessageEvent):
 
     if event.user_id not in ALLOWED_USERS:
         sent = await run_minecraft_server.send("Process Denied")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     if has_java_process():
         await start_ipv6_monitor(force_send=True)
         sent = await run_minecraft_server.send("Minecraft Server已在运行，IPv6监控已启动")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     try:
         mode = get_launch_mode()
@@ -154,15 +156,18 @@ async def _(event: MessageEvent):
 
     except Exception as e:
         sent = await run_minecraft_server.send(f"Minecraft Server启动失败\n{e}")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     if await wait_until_java_running(20):
         await start_ipv6_monitor(force_send=True)
         sent = await run_minecraft_server.send("Minecraft Server已启动")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     sent = await run_minecraft_server.send("Minecraft Server可能未成功启动：未检测到Java服务端进程")
-    await revocable_send(run_minecraft_server, event, sent)
+    add(event.message_id, sent["message_id"])
+    return
 
 
 @stop_minecraft_server.handle()
@@ -171,14 +176,16 @@ async def _(event: MessageEvent):
 
     if event.user_id not in ALLOWED_USERS:
         sent = await stop_minecraft_server.send("Process Denied")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     if not has_java_process():
         stop_ipv6_monitor()
         clear_minecraft_state()
         minecraft_window_id = None
         sent = await stop_minecraft_server.send("Minecraft Server未在运行")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     stopped_command_sent = False
     errors = []
@@ -202,15 +209,18 @@ async def _(event: MessageEvent):
     if not stopped_command_sent:
         detail = "\n".join(errors) if errors else "未找到可用的Terminal窗口，且RCON停止失败或未配置"
         sent = await stop_minecraft_server.send(f"停止Minecraft Server失败\n{detail}")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     if await wait_until_java_stopped(20):
         stop_ipv6_monitor()
         clear_minecraft_state()
         minecraft_window_id = None
         sent = await stop_minecraft_server.send("Minecraft Server已停止")
-        await revocable_send(run_minecraft_server, event, sent)
+        add(event.message_id, sent["message_id"])
+        return
 
     clear_minecraft_pid()
     sent = await stop_minecraft_server.send("已发送stop命令，但仍检测到Java进程，请检查服务器是否卡住")
-    await revocable_send(run_minecraft_server, event, sent)
+    add(event.message_id, sent["message_id"])
+    return

@@ -6,10 +6,9 @@ from nonebot import get_bot, on_message, require
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.rule import is_type
 from mcrcon import MCRcon
+require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
 from core.config import config
-
-require("nonebot_plugin_apscheduler")
 
 BRIDGE_GROUP_ID = config.qq.bridge_group_id
 RCON_HOST = config.rcon.host
@@ -22,9 +21,6 @@ FORWARD_BOT_SELF = False
 # MARK: 工具函数
 
 def clean_qq_text(text: str) -> str:
-    """
-    清理 QQ 消息，避免换行和过长文本破坏 MC 聊天显示。
-    """
     text = text.replace("\r", " ").replace("\n", " ").strip()
     text = re.sub(r"\s+", " ", text)
 
@@ -33,19 +29,11 @@ def clean_qq_text(text: str) -> str:
 
     return text
 
-
 def clean_mc_text(text: str) -> str:
-    """
-    清理 Minecraft 日志中的颜色代码。
-    """
     text = re.sub(r"§.", "", text)
     return text.strip()
 
-
 def get_group_display_name(event: GroupMessageEvent) -> str:
-    """
-    优先使用群名片，其次昵称，最后 QQ 号。
-    """
     sender = event.sender
 
     card = getattr(sender, "card", "") or ""
@@ -59,17 +47,11 @@ def get_group_display_name(event: GroupMessageEvent) -> str:
 
     return str(event.user_id)
 
-
 def run_rcon(command: str) -> str:
     with MCRcon(RCON_HOST, RCON_PASSWORD, port=RCON_PORT, timeout=5) as mcr:
         return mcr.command(command)
 
-
 async def send_to_minecraft(name: str, message: str):
-    """
-    用 tellraw 向所有 Minecraft 玩家发送 QQ 消息。
-    使用 json.dumps 避免引号、反斜杠等字符破坏 JSON。
-    """
     payload = [
         {
             "text": f"{QQ_TO_MC_PREFIX} ",
@@ -92,11 +74,7 @@ async def send_to_minecraft(name: str, message: str):
     command = f"tellraw @a {json.dumps(payload, ensure_ascii=False)}"
     run_rcon(command)
 
-
 async def send_to_qq(player_name: str, message: str):
-    """
-    把 Minecraft 消息发到 QQ 群。
-    """
     bot = get_bot()
     await bot.send_group_msg(
         group_id=BRIDGE_GROUP_ID,
@@ -144,22 +122,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
     try:
         await send_to_minecraft(name, msg)
     except Exception as e:
-        # 不建议每次都往群里报错，否则服务器关闭时会刷屏
         print(f"[mc_bridge] QQ -> MC 转发失败: {e}")
-
 
 # MARK: Minecraft -> QQ
 
 MC_CHAT_PATTERNS = [
-    # 常见 Vanilla / Paper 日志格式：
-    # [12:34:56] [Server thread/INFO]: <Steve> hello
     re.compile(r"^\[[^\]]+\] \[Server thread/INFO\]: <([^>]+)> (.*)$"),
-
-    # 有些服务端日志可能没有前面的时间：
-    # [Server thread/INFO]: <Steve> hello
     re.compile(r"^\[Server thread/INFO\]: <([^>]+)> (.*)$"),
 ]
-
 
 def parse_mc_chat_line(line: str) -> Optional[tuple[str, str]]:
     line = clean_mc_text(line)
@@ -173,7 +143,6 @@ def parse_mc_chat_line(line: str) -> Optional[tuple[str, str]]:
             if not name or not msg:
                 return None
 
-            # 避免 QQ->MC 的 tellraw 消息又回流到 QQ
             if msg.startswith(QQ_TO_MC_PREFIX):
                 return None
 
@@ -181,22 +150,13 @@ def parse_mc_chat_line(line: str) -> Optional[tuple[str, str]]:
 
     return None
 
-
 class LogTailer:
-    """
-    简单的 latest.log 增量读取器。
-    每次只读取新增内容。
-    """
-
     def __init__(self, path: Path):
         self.path = path
         self.position = 0
         self.initialized = False
 
     def init_position(self):
-        """
-        启动时跳到文件末尾，避免把历史聊天记录重新发到 QQ。
-        """
         if self.path.exists():
             self.position = self.path.stat().st_size
         else:
@@ -228,9 +188,7 @@ class LogTailer:
 
         return lines
 
-
 tailer = LogTailer(MC_LOG_PATH)
-
 
 @scheduler.scheduled_job("interval", seconds=1, id="mc_bridge_log_tailer")
 async def check_minecraft_chat_log():

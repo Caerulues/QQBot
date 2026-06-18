@@ -676,13 +676,6 @@ def is_likely_death_message(msg: str) -> bool:
 # MARK: 事件解析
 
 def parse_mc_event(line: str) -> Optional[str]:
-    """
-    解析 latest.log 的一行。
-
-    返回：
-    - 需要发送到 QQ 群的消息
-    - 不需要转发时返回 None
-    """
     msg = strip_log_prefix(line)
 
     if not msg:
@@ -749,13 +742,6 @@ def parse_mc_event(line: str) -> Optional[str]:
 # MARK: log读取
 
 class LogTailer:
-    """
-    latest.log 增量读取器。
-
-    启动时跳到文件末尾，避免旧日志刷屏。
-    后续每次只读取新增内容。
-    """
-
     def __init__(self, path: Path):
         self.path = path
         self.position = 0
@@ -780,7 +766,6 @@ class LogTailer:
 
         current_size = self.path.stat().st_size
 
-        # latest.log 被重建或截断
         if current_size < self.position:
             self.position = 0
 
