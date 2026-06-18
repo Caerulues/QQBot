@@ -5,12 +5,7 @@ from utils.recall_map import add
 
 HELP_MAP = {
     "ddl": (
-        "当前指令: .ddl\n"
-        "\n"
-        "子命令列表\n"
-        ".ddl add <任务名称> <截止时间>\n"
-        ".ddl list\n"
-        ".ddl del <UUID>"
+
     ),
     
     "": (

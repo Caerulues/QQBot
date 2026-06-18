@@ -24,41 +24,18 @@ from nonebot_plugin_apscheduler import scheduler
 
 from utils.recall_map import add
 from plugins.help import get_help
+from core.json_store import (
+    get_user_file,
+    load_data,
+    save_data
+)
 
 from core.config import config
 
-DATA_PATH = Path(config.data_dir) / "deadlines"
-DATA_PATH.mkdir(parents=True, exist_ok=True)
+DDL_PATH = Path(config.data_dir) / "deadlines"
+DDL_PATH.mkdir(parents=True, exist_ok=True)
 
 ddl_cmd = on_command("ddl", priority=5, block=True)
-
-# MARK: 数据存储
-
-def get_user_file(user_id: int):
-    return DATA_PATH / f"{user_id}.json"
-
-def load_data(user_id: int):
-    file = get_user_file(user_id)
-
-    if not file.exists():
-        with open(file, "w", encoding="utf-8") as f:
-            json.dump([], f)
-
-        return []
-
-    with open(file, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save_data(user_id: int, data):
-    file = get_user_file(user_id)
-
-    with open(file, "w", encoding="utf-8") as f:
-        json.dump(
-            data,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
 
 # MARK: 提醒规则（动态）
 
@@ -262,7 +239,7 @@ async def _(event):
     action = args[1]
 
     user_id = event.user_id
-    data = load_data(user_id)
+    data = load_data(DDL_PATH, user_id)
 
     # MARK: add
 
