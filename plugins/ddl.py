@@ -31,6 +31,7 @@ from core.json_store import (
 )
 
 from core.config import config
+from core.font import load_font
 
 DDL_PATH = Path(config.data_dir) / "deadlines"
 DDL_PATH.mkdir(parents=True, exist_ok=True)
@@ -102,23 +103,6 @@ def parse_ddl_line(text: str):
     except Exception as e:
         print(f"[Parse Error] {e}")
         return None
-
-# MARK: 字体
-
-def load_font(size):
-    candidates = [
-        "/System/Library/Fonts/PingFang.ttc",
-        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-        "/System/Library/Fonts/STHeiti Medium.ttc",
-    ]
-
-    for path in candidates:
-        try:
-            return ImageFont.truetype(path, size)
-        except:
-            continue
-
-    raise RuntimeError("No valid CJK font found")
 
 # MARK: 图片生成
 
@@ -269,7 +253,6 @@ async def _(event):
             ddl_time = parsed["time"]
 
             item = {
-                "id": str(uuid.uuid4())[:8],
                 "title": title,
                 "time": ddl_time.timestamp(),
 
@@ -296,6 +279,24 @@ async def _(event):
 
         add(event.message_id, sent["message_id"])
         return
+
+    # MARK: mv
+
+    elif action == "mv":
+        mv_msg = raw_msg.replace(".ddl mv", "").strip()
+        mv_args = mv_msg.split()
+
+        if len(mv_args) < 1:
+            sent = await ddl_cmd.send(
+                "请输入执行操作"
+            )
+            add(event.message_id, sent["message_id"])
+            return
+
+        mv_action = mv_args[0]
+
+        if mv_action == "-n":
+            return
 
     # MARK: list
 
@@ -359,6 +360,7 @@ async def _(event):
         add(event.message_id, sent["message_id"])
         return
 
+
     else:
         sent = await ddl_cmd.send("未知操作")
         add(event.message_id, sent["message_id"])
@@ -376,7 +378,7 @@ async def ddl_reminder():
 
     now = datetime.now().timestamp()
 
-    for file in DATA_PATH.glob("*.json"):
+    for file in DDL_PATH.glob("*.json"):
         try:
             user_id = int(file.stem)
 
