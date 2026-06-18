@@ -69,8 +69,8 @@ async def send_ipv6_to_groups(ipv6: str, reason: str):
             logger.warning(f"IPv6消息发送到群 {group_id} 失败: {e}")
 
 
-async def check_ipv6(force_send: bool = False):
-    if not server_running:
+async def check_ipv6(force_send: bool = False, require_running: bool = True):
+    if require_running and not server_running:
         logger.info("Minecraft服务端未由Bot标记为运行，跳过IPv6检查")
         return
 
@@ -103,12 +103,12 @@ async def check_ipv6(force_send: bool = False):
     await send_ipv6_to_groups(ipv6, "已更新")
 
 
-async def start_ipv6_monitor():
+async def start_ipv6_monitor(force_send: bool = True):
     global server_running
 
     server_running = True
 
-    await check_ipv6(force_send=True)
+    await check_ipv6(force_send=force_send, require_running=False)
 
     if scheduler.get_job(JOB_ID):
         return
@@ -118,7 +118,7 @@ async def start_ipv6_monitor():
         "interval",
         minutes=10,
         id=JOB_ID,
-        kwargs={"force_send": False},
+        kwargs={"force_send": False, "require_running": True},
         replace_existing=True,
     )
 

@@ -2,10 +2,8 @@ from pathlib import Path
 import tomllib
 from dataclasses import dataclass
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "config.toml"
-
 
 @dataclass
 class ServerConfig:
@@ -14,13 +12,11 @@ class ServerConfig:
     terminal_title: str
     launch_mode: str = "auto"
 
-
 @dataclass
 class RconConfig:
     host: str
     port: int
     password: str
-
 
 @dataclass
 class MinecraftConfig:
@@ -29,7 +25,6 @@ class MinecraftConfig:
     status_address: str
     log_path: str
     ping_target: str = "test6.ustc.edu.cn"
-
 
 @dataclass
 class QQConfig:
@@ -40,7 +35,6 @@ class QQConfig:
     bot_ids: set[int]
     ping_user_id: int | None = None
 
-
 @dataclass
 class BotConfig:
     server: ServerConfig
@@ -48,7 +42,6 @@ class BotConfig:
     minecraft: MinecraftConfig
     qq: QQConfig
     data_dir: str = "data"
-
 
 def load_config() -> BotConfig:
     if not CONFIG_PATH.exists():
@@ -96,6 +89,5 @@ def load_config() -> BotConfig:
         ),
         data_dir=str(BASE_DIR / raw.get("data_dir", "data")),
     )
-
 
 config = load_config()
