@@ -16,7 +16,7 @@ async def _(bot: Bot, event: GroupRecallNoticeEvent | FriendRecallNoticeEvent):
 
     try:
         await bot.delete_msg(message_id=bot_msg_id)
-        
+
     except:
         pass
 
