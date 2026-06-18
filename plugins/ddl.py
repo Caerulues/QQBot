@@ -18,7 +18,7 @@ require("nonebot_plugin_apscheduler")
 
 from nonebot_plugin_apscheduler import scheduler
 
-from utils.recall_map import add
+from utils.revocable_send import revocable_send
 from plugins.help import get_help
 from core.json_store import (
     load_data,
@@ -211,9 +211,7 @@ async def _(event):
     args = raw_msg.split()
 
     if len(args) < 2:
-        sent = await ddl_cmd.send(get_help("ddl"))
-        add(event.message_id, sent["message_id"])
-        return
+        await revocable_send(ddl_cmd, event ,get_help("ddl"))
 
     action = args[1]
 
@@ -223,18 +221,21 @@ async def _(event):
     # MARK: add
 
     if action == "add":
-        raw = raw_msg.replace(".ddl add", "").strip()
+        add_msg = raw_msg.replace(".ddl add", "").strip()
+        add_args = add_msg.split()
+
+        if len(add_args) < 2:
+            return
 
         lines = [
             x.strip()
-            for x in raw.split("\n")
+            for x in add_msg.split("\n")
             if x.strip()
         ]
 
         if not lines:
             sent = await ddl_cmd.send("请输入任务名称和截止时间")
-            add(event.message_id, sent["message_id"])
-            return
+            await revocable_send(ddl_cmd, event, sent)
 
         added = []
 
@@ -268,11 +269,9 @@ async def _(event):
             sent = await ddl_cmd.send("无法解析时间")
 
         else:
-            sent = await ddl_cmd.send(
-                "已添加DDL:\n" + "\n".join(added)
-            )
+            sent = await ddl_cmd.send("已添加DDL:\n" + "\n".join(added))
 
-        add(event.message_id, sent["message_id"])
+        await revocable_send(ddl_cmd, event, sent)
         return
 
     # MARK: mv
@@ -282,10 +281,8 @@ async def _(event):
         mv_args = mv_msg.split()
 
         if len(mv_args) < 1:
-            sent = await ddl_cmd.send(
-                "请输入执行操作"
-            )
-            add(event.message_id, sent["message_id"])
+            sent = await ddl_cmd.send("请输入执行操作")
+            await revocable_send(ddl_cmd, event, sent)
             return
 
         mv_action = mv_args[0]
@@ -304,12 +301,8 @@ async def _(event):
         ]
 
         if not valid_data:
-            sent = await ddl_cmd.send(
-                "你的DDL已经清空，可以休息一会了～"
-            )
-
-            add(event.message_id, sent["message_id"])
-            return
+            sent = await ddl_cmd.send("你的DDL已经清空，可以休息一会了～")
+            await revocable_send(ddl_cmd, event, sent)
 
         valid_data.sort(key=lambda x: x["time"])
 
@@ -319,7 +312,7 @@ async def _(event):
             MessageSegment.image(img)
         )
 
-        add(event.message_id, sent["message_id"])
+        await revocable_send(ddl_cmd, event, sent)
         return
 
     # MARK: del
@@ -327,7 +320,7 @@ async def _(event):
     elif action == "del":
         if len(args) < 3:
             sent = await ddl_cmd.send("请输入ID")
-            add(event.message_id, sent["message_id"])
+            await revocable_send(ddl_cmd, event, sent)
             return
 
         ddl_id = args[2]
@@ -339,27 +332,23 @@ async def _(event):
 
         if len(new_data) == len(data):
             sent = await ddl_cmd.send("未找到对应DDL")
-            add(event.message_id, sent["message_id"])
-            return
+            await revocable_send(ddl_cmd, event, sent)
 
         save_data(user_id, new_data)
 
         sent = await ddl_cmd.send("已删除")
-        add(event.message_id, sent["message_id"])
-        return
+        await revocable_send(ddl_cmd, event, sent)
 
     # MARK: help
 
     elif action == "help":
         sent = await ddl_cmd.send(get_help("ddl"))
-        add(event.message_id, sent["message_id"])
-        return
+        await revocable_send(ddl_cmd, event, sent)
 
 
     else:
         sent = await ddl_cmd.send("未知操作")
-        add(event.message_id, sent["message_id"])
-        return
+        await revocable_send(ddl_cmd, event, sent)
 
 # MARK: 定时提醒
 

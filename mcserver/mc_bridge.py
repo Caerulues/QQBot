@@ -2,35 +2,22 @@ import json
 import re
 from pathlib import Path
 from typing import Optional
-
 from nonebot import get_bot, on_message, require
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.rule import is_type
-
 from mcrcon import MCRcon
+from nonebot_plugin_apscheduler import scheduler
+from core.config import config
 
 require("nonebot_plugin_apscheduler")
 
-from nonebot_plugin_apscheduler import scheduler
-
-# ===== 基本配置 =====
-
-from core.config import config
-
 BRIDGE_GROUP_ID = config.qq.bridge_group_id
-
 RCON_HOST = config.rcon.host
 RCON_PORT = config.rcon.port
 RCON_PASSWORD = config.rcon.password
-
 MC_LOG_PATH = Path(config.minecraft.log_path)
-
-# 防止 QQ->MC 后又被 latest.log 识别为 MC->QQ 的前缀
 QQ_TO_MC_PREFIX = "[QQ]"
-
-# 是否转发机器人自己发的群消息
 FORWARD_BOT_SELF = False
-
 
 # MARK: 工具函数
 
