@@ -25,7 +25,6 @@ from utils.recall_map import add
 from utils.ipv6_monitor import start_ipv6_monitor, stop_ipv6_monitor
 from core.config import config
 
-
 driver = get_driver()
 
 ALLOWED_USERS = config.qq.admin_users

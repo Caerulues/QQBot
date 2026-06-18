@@ -19,7 +19,7 @@ def is_macos() -> bool:
 def require_macos_terminal():
     if not is_macos():
         raise RuntimeError(
-            ".run_server/.stop_server 的 macOS Terminal 控制只支持 macOS。"
+            ".run_server/.stop_server 的 macOS Terminal 控制只支持 macOS。\n"
             "请将 [server].launch_mode 设为 \"subprocess\"，或使用 RCON 停止服务器。"
         )
 

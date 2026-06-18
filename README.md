@@ -16,11 +16,11 @@
 
 ## 项目简介
 
-**Cauxium** 是一个基于 **NoneBot2** 和 **OneBot v11** 协议开发的 QQBot，主要用于在 QQ 群中远程管理、监控和联动本地 Minecraft Java 服务器。
+**Cauxium** 是一个基于 **NoneBot2** 和 **OneBot v11** 协议开发的 QQBot。
 
-通过 QQ 群指令，用户可以启动或关闭 Minecraft 服务器、查询服务器状态、查看在线玩家、同步 QQ 与 Minecraft 聊天、监听玩家进出和死亡事件，并在 IPv6 地址变化时自动通知群成员。
+通过 QQ 群指令，用户可以启动或关闭 Minecraft 服务器、查询服务器状态、查看在线玩家、同步 QQ 与 Minecraft 聊天、监听玩家进出和死亡事件，并在 IPv6 地址变化时自动通知群成员。本 QQBot 另内置ddl和todo模块，可以自动提醒用户的待做任务截止。
 
-本项目的定位是一个偏向 **Minecraft 群服互联 + QQ 群辅助**。
+本项目的定位: **Minecraft 群服互联 + QQ 群辅助 Bot**。
 
 ---
 
@@ -47,15 +47,13 @@
 
 - QQ 群消息转发到 Minecraft 服务器内
 - Minecraft 玩家聊天转发到 QQ 群
-- 自动过滤 QQ 指令，避免命令内容进入游戏聊天
-- 防止 QQ 与 Minecraft 消息互相回流导致循环转发
 
 ### Minecraft 事件通知
 
 - 玩家加入服务器通知
 - 玩家离开服务器通知
 - 玩家死亡事件通知
-- 常见英文死亡信息中文化处理
+- 常见英文死亡信息汉化
 - 支持将事件推送到指定 QQ 群
 
 ### IPv6 地址监控
@@ -64,16 +62,16 @@
 - Minecraft 服务器启动后自动发送当前 IPv6 地址
 - 每 10 分钟检查一次 IPv6 是否变化
 - IPv6 更新后自动通知 QQ 群
-- 适合家庭宽带 IPv6 地址动态变化的场景
+- 适合中国大陆家庭宽带 IPv6 地址动态变化的场景
 
 ### DDL 截止日期提醒
 
 - 添加截止日期任务
 - 查看任务列表
 - 删除任务
-- 支持中文时间解析
+- 支持中文自然语言时间解析
 - 支持生成图片形式的任务列表
-- 到期前一周、一天、一小时自动提醒
+- 到期和到期前一周、一天、一小时自动提醒
 - 过期任务自动清理
 
 ### QQBot 辅助功能
@@ -94,7 +92,7 @@
 | Bot 框架 | NoneBot2 |
 | QQ 协议 | OneBot v11 |
 | QQ 客户端实现 | NapCat / Lagrange / go-cqhttp 等 |
-| 服务器控制 | Python `asyncio`、AppleScript、macOS Terminal |
+| 服务器控制 | Python `asyncio`、AppleScript 或 Windows shell、macOS Terminal 或 Windows cmd|
 | Minecraft 状态查询 | `mcstatus` |
 | Minecraft 控制台交互 | RCON |
 | 定时任务 | `nonebot-plugin-apscheduler` |
@@ -110,7 +108,6 @@
 ```text
 .
 ├── bot.py                  # NoneBot 启动入口
-├── config.toml             # 本地配置文件，不建议上传 GitHub
 ├── config_example.toml     # 配置模板，建议补全后提交到仓库
 ├── .env                    # NoneBot 环境变量
 ├── .gitignore              # Git 忽略规则
