@@ -28,7 +28,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 * 查看在线玩家列表
 * 获取延迟、TPS、MSPT 等运行信息
 
-### QQ &rarr; Minecraft 联动
+### QQ &larr;&rarr; Minecraft 联动
 
 * QQ 消息转发至 Minecraft 游戏内聊天
 * Minecraft 聊天同步至 QQ
