@@ -18,24 +18,10 @@ env/
 # Local secrets
 .env
 config.toml
-.env
-data/
+data/deadlines
+data/ip
+data/todo
 logs/
-__pycache__/
-*.pyc
-.DS_Store
-.idea/
-.venv/
-venv/
-env/
 .cache/
 *.log
 __MACOSX/
-
-# Runtime data
-data/
-logs/
-
-# NoneBot / runtime cache
-.cache/
-*.log

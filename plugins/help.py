@@ -1,38 +1,59 @@
+import json
+import io
+from pathlib import Path
+
+from PIL import Image, ImageDraw
+
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Message, MessageEvent
+from nonebot.params import CommandArg
+from nonebot.adapters.onebot.v11 import Message, MessageEvent, MessageSegment
 
 from utils.recall_map import add
+from core.config import config
+from core.font import load_font
+from utils.render_image import render_image
 
-HELP_MAP = {
-    "ddl": (
-        "当前指令: .ddl\n"
-        "\n"
-        "子命令列表\n"
-        ".ddl add <任务名称> <截止时间>\n"
-        ".ddl list\n"
-        ".ddl del <UUID>"
-    ),
-    
-    "": (
-        "Cauxium帮助信息\n"
-        "指令列表\n"
-        ".ddl - 任务截止日期功能模块\n"
-        ".echo - 测试是否在线\n"
-        ".ipv6 - 显示当前IPv6地址\n"
-        ".ping - 测试当前网络及消息处理延迟\n"
-        ".status - 显示当前系统状态\n"
-    )
-}
-
-def get_help(module: str) -> str:
-    return HELP_MAP.get(module, "未找到该指令的帮助信息")
+HELP_PATH = Path(config.data_dir) / "help"
+HELP_PATH.mkdir(parents=True, exist_ok=True)
 
 help_cmd = on_command("help", priority=5, block=True)
 
-@help_cmd.handle()
-async def _(event: MessageEvent):
-    args = event.get_plaintext().replace(".help", "").strip()
+def get_help_file():
+    return HELP_PATH / "help.json"
 
-    sent = await help_cmd.send(get_help(args))
+def load_help_map() -> dict[str, list[str]]:
+    file = get_help_file()
+
+    if not file.exists():
+        return {}
+
+    with open(file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def get_help_lines(module: str = "") -> list[str]:
+    help_map = load_help_map()
+    module = module.strip().lower()
+
+    return help_map.get(module, ["未找到该指令的帮助信息"])
+
+
+def get_help(module: str = "") -> str:
+    help_map = load_help_map()
+    module = module.strip().lower()
+    lines = get_help_lines(module)
+
+    image_bytes = render_image(lines)
+
+    return MessageSegment.image(image_bytes)
+
+
+@help_cmd.handle()
+async def _(event: MessageEvent, args: Message = CommandArg()):
+    module = args.extract_plain_text().strip()
+
+    lines = get_help_lines(module)
+    image_bytes = render_image(lines)
+
+    sent = await help_cmd.send(MessageSegment.image(image_bytes))
     add(event.message_id, sent["message_id"])
     return

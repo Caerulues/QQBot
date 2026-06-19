@@ -11,18 +11,15 @@ from core.config import config
 
 TERMINAL_TITLE = config.server.terminal_title
 
-
 def is_macos() -> bool:
     return platform.system() == "Darwin"
-
 
 def require_macos_terminal():
     if not is_macos():
         raise RuntimeError(
-            ".run_server/.stop_server 的 macOS Terminal 控制只支持 macOS。"
+            ".run_server/.stop_server 的 macOS Terminal 控制只支持 macOS。\n"
             "请将 [server].launch_mode 设为 \"subprocess\"，或使用 RCON 停止服务器。"
         )
-
 
 async def run_osascript(script: str) -> tuple[str, str, int]:
     require_macos_terminal()
@@ -42,7 +39,6 @@ async def run_osascript(script: str) -> tuple[str, str, int]:
 
     return out, err, proc.returncode
 
-
 async def terminal_window_exists(window_id: int) -> bool:
     if not is_macos():
         return False
@@ -61,7 +57,6 @@ async def terminal_window_exists(window_id: int) -> bool:
     stdout, _, _ = await run_osascript(script)
 
     return stdout == "true"
-
 
 async def find_minecraft_terminal_by_title() -> Optional[int]:
     if not is_macos():
@@ -92,7 +87,6 @@ async def find_minecraft_terminal_by_title() -> Optional[int]:
     except ValueError:
         return None
 
-
 async def restore_minecraft_window_id() -> Optional[int]:
     """
     优先从 data/server_terminal.json 恢复 window_id。
@@ -116,7 +110,6 @@ async def restore_minecraft_window_id() -> Optional[int]:
 
     clear_minecraft_window_id()
     return None
-
 
 async def open_minecraft_terminal(server_path: str, command: str) -> int:
     require_macos_terminal()
@@ -148,7 +141,6 @@ async def open_minecraft_terminal(server_path: str, command: str) -> int:
 
     return window_id
 
-
 async def send_command_to_terminal(window_id: int, command: str):
     require_macos_terminal()
 
@@ -169,7 +161,6 @@ async def send_command_to_terminal(window_id: int, command: str):
     if code != 0:
         raise RuntimeError(f"向Terminal发送命令失败: {stderr or stdout}")
 
-
 async def close_terminal_window(window_id: int):
     if not is_macos():
         return
@@ -183,7 +174,6 @@ async def close_terminal_window(window_id: int):
     '''
 
     await run_osascript(script)
-
 
 async def stop_minecraft_terminal(window_id: int, close_after_stop: bool = True):
     await send_command_to_terminal(window_id, "stop")

@@ -25,7 +25,6 @@ from utils.recall_map import add
 from utils.ipv6_monitor import start_ipv6_monitor, stop_ipv6_monitor
 from core.config import config
 
-
 driver = get_driver()
 
 ALLOWED_USERS = config.qq.admin_users
@@ -40,11 +39,6 @@ stop_minecraft_server = on_command("stop_server", priority=5, block=True)
 
 
 def get_launch_mode() -> str:
-    """
-    auto: macOS 使用 Terminal；其他系统使用 subprocess。
-    terminal: 强制 macOS Terminal。
-    subprocess: 跨平台后台子进程。
-    """
     if SERVER_LAUNCH_MODE in {"terminal", "subprocess"}:
         return SERVER_LAUNCH_MODE
     return "terminal" if is_macos() else "subprocess"
@@ -173,6 +167,7 @@ async def _(event: MessageEvent):
 
     sent = await run_minecraft_server.send("Minecraft Server可能未成功启动：未检测到Java服务端进程")
     add(event.message_id, sent["message_id"])
+    return
 
 
 @stop_minecraft_server.handle()
@@ -195,7 +190,6 @@ async def _(event: MessageEvent):
     stopped_command_sent = False
     errors = []
 
-    # 先尝试 macOS Terminal。若窗口被手动关闭，则按标题恢复；恢复失败后改用 RCON。
     if is_macos():
         if not minecraft_window_id:
             minecraft_window_id = await restore_minecraft_window_id()
@@ -229,3 +223,4 @@ async def _(event: MessageEvent):
     clear_minecraft_pid()
     sent = await stop_minecraft_server.send("已发送stop命令，但仍检测到Java进程，请检查服务器是否卡住")
     add(event.message_id, sent["message_id"])
+    return

@@ -7,10 +7,7 @@ from nonebot import get_bot, logger, require
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
 
-
-# =========================
-# 配置区
-# =========================
+# MARK: 配置
 
 from core.config import config
 
@@ -30,9 +27,7 @@ MC_PREFIX = "[MC]"
 TRANSLATE_DEATH_MESSAGE = True
 
 
-# =========================
-# 基础文本处理
-# =========================
+# MARK: 文本处理
 
 def clean_mc_text(text: str) -> str:
     """
@@ -78,18 +73,11 @@ def normalize_death_text(text: str) -> str:
     text = text.replace(" while fighting ", " whilst fighting ")
     return text.strip()
 
-
-# =========================
-# 进服 / 退服
-# =========================
+# MARK: 服务器消息处理
 
 JOIN_PATTERN = re.compile(r"^([A-Za-z0-9_]{1,16}) joined the game$")
 LEAVE_PATTERN = re.compile(r"^([A-Za-z0-9_]{1,16}) left the game$")
 
-
-# =========================
-# 死亡信息翻译
-# =========================
 
 def translate_death_message(msg: str) -> Optional[str]:
     """
@@ -108,18 +96,14 @@ def translate_death_message(msg: str) -> Optional[str]:
     item_pattern = r"(?P<item>.+?)"
 
     rules: list[tuple[re.Pattern, str]] = [
-        # =========================
-        # 指令
-        # =========================
+        # 指令kill
 
         (
             re.compile(rf"^{name_pattern} was killed$"),
             "{dead} 被杀死了",
         ),
 
-        # =========================
-        # 近战 / 生物 / 玩家
-        # =========================
+        # 近战
 
         (
             re.compile(rf"^{name_pattern} was slain by {target_pattern} using {item_pattern}$"),
@@ -154,10 +138,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 死了",
         ),
 
-        # =========================
-        # 蜜蜂 / 螫刺
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} was stung to death by {target_pattern} using {item_pattern}$"),
             "{dead} 被 {killer} 用 {item} 蛰死了",
@@ -170,10 +150,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} was stung to death$"),
             "{dead} 被蛰死了",
         ),
-
-        # =========================
-        # 弓箭 / 投射物 / 头颅 / 三叉戟 / 火球
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} was shot by a skull from {target_pattern} using {item_pattern}$"),
@@ -228,10 +204,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 被 {killer} 摧毁了",
         ),
 
-        # =========================
-        # 爆炸 / 床 / 重生锚
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} was blown up by {target_pattern} using {item_pattern}$"),
             "{dead} 被 {killer} 用 {item} 炸死了",
@@ -257,10 +229,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 被 {killer} 抹除了",
         ),
 
-        # =========================
-        # 烟花
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} went off with a bang whilst fighting {target_pattern}$"),
             "{dead} 在与 {killer} 战斗时随着一声巨响消失了",
@@ -273,10 +241,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} went off with a bang due to a firework fired from {target_pattern} by {item_pattern}$"),
             "{dead} 随着 {target} 用 {item} 发射的烟花发出的巨响消失了",
         ),
-
-        # =========================
-        # 仙人掌 / 甜浆果 / 尖刺
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} walked into a cactus whilst trying to escape {target_pattern}$"),
@@ -307,10 +271,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 在试图伤害 {killer} 时被杀死",
         ),
 
-        # =========================
-        # 溺水 / 脱水
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} drowned whilst trying to escape {target_pattern}$"),
             "{dead} 在试图逃离 {killer} 时淹死了",
@@ -332,10 +292,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 因脱水而死",
         ),
 
-        # =========================
-        # 鞘翅 / 动能 / 撞墙
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} experienced kinetic energy whilst trying to escape {target_pattern}$"),
             "{dead} 在试图逃离 {killer} 时感受到了动能",
@@ -352,10 +308,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} flew into a wall$"),
             "{dead} 飞进了墙里",
         ),
-
-        # =========================
-        # 坠落
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} hit the ground too hard whilst trying to escape {target_pattern}$"),
@@ -430,10 +382,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 在水中摔死了",
         ),
 
-        # =========================
-        # 坠落方块 / 铁砧 / 钟乳石
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} was squashed by a falling anvil whilst fighting {target_pattern}$"),
             "{dead} 在与 {killer} 战斗时被坠落的铁砧压扁了",
@@ -467,9 +415,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 被倒下的树压死了",
         ),
 
-        # =========================
-        # 火焰 / 火 / 岩浆 / 岩浆块
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} went up in flames$"),
@@ -528,10 +473,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 走进了危险区域",
         ),
 
-        # =========================
-        # 闪电
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} was struck by lightning whilst fighting {target_pattern}$"),
             "{dead} 在与 {killer} 战斗时被闪电击中",
@@ -540,10 +481,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} was struck by lightning$"),
             "{dead} 被闪电击中",
         ),
-
-        # =========================
-        # 魔法 / 龙息 / 凋零 / 饥饿
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} was killed by magic whilst trying to escape {target_pattern}$"),
@@ -582,10 +519,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             "{dead} 饿死了",
         ),
 
-        # =========================
-        # 细雪 / 冻结
-        # =========================
-
         (
             re.compile(rf"^{name_pattern} was frozen to death by {target_pattern} using {item_pattern}$"),
             "{dead} 被 {killer} 用 {item} 冻死了",
@@ -598,10 +531,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} froze to death$"),
             "{dead} 冻死了",
         ),
-
-        # =========================
-        # 监守者 / 音波尖啸
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} was obliterated by a sonically-charged shriek whilst trying to escape {target_pattern}$"),
@@ -619,10 +548,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} was killed by sonic boom$"),
             "{dead} 被一道音波尖啸抹除了",
         ),
-
-        # =========================
-        # 窒息 / 实体挤压 / 世界边界
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} suffocated in a wall whilst fighting {target_pattern}$"),
@@ -648,10 +573,6 @@ def translate_death_message(msg: str) -> Optional[str]:
             re.compile(rf"^{name_pattern} left the confines of this world$"),
             "{dead} 离开了这个世界的边界",
         ),
-
-        # =========================
-        # 虚空
-        # =========================
 
         (
             re.compile(rf"^{name_pattern} didn't want to live in the same world as {target_pattern}$"),
@@ -752,19 +673,9 @@ def is_likely_death_message(msg: str) -> bool:
 
     return any(keyword in msg for keyword in keywords)
 
-
-# =========================
-# 事件解析
-# =========================
+# MARK: 事件解析
 
 def parse_mc_event(line: str) -> Optional[str]:
-    """
-    解析 latest.log 的一行。
-
-    返回：
-    - 需要发送到 QQ 群的消息
-    - 不需要转发时返回 None
-    """
     msg = strip_log_prefix(line)
 
     if not msg:
@@ -828,18 +739,9 @@ def parse_mc_event(line: str) -> Optional[str]:
     return None
 
 
-# =========================
-# latest.log 增量读取
-# =========================
+# MARK: log读取
 
 class LogTailer:
-    """
-    latest.log 增量读取器。
-
-    启动时跳到文件末尾，避免旧日志刷屏。
-    后续每次只读取新增内容。
-    """
-
     def __init__(self, path: Path):
         self.path = path
         self.position = 0
@@ -864,7 +766,6 @@ class LogTailer:
 
         current_size = self.path.stat().st_size
 
-        # latest.log 被重建或截断
         if current_size < self.position:
             self.position = 0
 
@@ -877,11 +778,6 @@ class LogTailer:
 
 
 tailer = LogTailer(MC_LOG_PATH)
-
-
-# =========================
-# 定时监听任务
-# =========================
 
 async def check_minecraft_events():
     if GROUP_ID is None:

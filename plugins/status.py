@@ -1,24 +1,17 @@
 import time
 import psutil
-
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Message
-
 from utils.recall_map import add
 
 START_TIME = time.time()
-
 status = on_command("status", priority=5, block=True)
-
 
 def get_cpu():
     return psutil.cpu_percent(interval=0.5)
 
-
 def get_memory():
     mem = psutil.virtual_memory()
     return mem.percent, mem.used / 1024 / 1024, mem.total / 1024 / 1024
-
 
 def format_uptime(seconds: int) -> str:
     days = seconds // 86400
@@ -37,13 +30,10 @@ def format_uptime(seconds: int) -> str:
 
     return " ".join(parts)
 
-
 @status.handle()
 async def _(event):
     cpu = get_cpu()
-
     mem_percent, mem_used, mem_total = get_memory()
-
     elapsed = int(time.time() - START_TIME)
 
     msg = (
