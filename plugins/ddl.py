@@ -431,6 +431,7 @@ async def _(event, state: T_State):
         if not keyword:
             sent = await ddl_cmd.send("请输入要删除的任务名称")
             add(event.message_id, sent["message_id"])
+            return
 
         matches = [
             item for item in data
@@ -440,6 +441,14 @@ async def _(event, state: T_State):
         if not matches:
             sent = await ddl_cmd.send(f"未找到与 {keyword} 相关的DDL")
             add(event.message_id, sent["message_id"])
+            return
+
+        if len(matches) == 1:
+            data.remove(matches[0])
+            save_data(DDL_PATH, user_id, data)
+            sent = await ddl_cmd.send(f"已删除: {matches[0]['title']}")
+            add(event.message_id, sent["message_id"])
+            return
 
         if len(matches) == 1:
             data.remove(matches[0])
