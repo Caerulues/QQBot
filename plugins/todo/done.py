@@ -90,13 +90,17 @@ async def receive_done_choice(cmd, event: MessageEvent, state: T_State):
 
     for tasks in data.get("branches", {}).values():
         for task in tasks:
-            if task.get("id") == target_id:
+            if len(matches) == 1:
+                target = matches[0]["task"]
+
                 push_history(
                     data,
-                    action=f"完成任务：{task['name']}"
+                    action=f"完成任务：{target['name']}"
                 )
-                task["done"] = True
+
+                target["done"] = True
                 save_todo(user_id, data)
-                await cmd.finish(f"已完成：{task['name']}")
+
+                await cmd.finish(f"已完成：{target['name']}")
 
     await cmd.finish("任务不存在，可能已被修改或删除")

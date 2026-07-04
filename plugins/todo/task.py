@@ -38,16 +38,16 @@ async def handle_task(
 async def handle_task_modify(cmd, raw_msg: str, data: dict, user_id: int, state: T_State):
     content = raw_msg.replace(f"{cmd_start}todo task -m", "", 1).strip()
 
-    # task -m <任务名称> -n <原备注> | <新备注>
+    # task -m <任务名称> -n <新备注>
     if " -n " in content:
-        task_name, note_part = content.split(" -n ", 1)
-        old_note, new_note = split_by_bar(note_part)
+        task_name, new_note = content.split(" -n ", 1)
 
         task_name = task_name.strip()
+        new_note = new_note.strip()
 
-        if not task_name or not old_note or not new_note:
+        if not task_name or not new_note:
             await cmd.finish(
-                f"格式: {cmd_start}todo task -m <任务名称> -n <原任务备注> | <新任务备注>"
+                f"格式: {cmd_start}todo task -m <任务名称> -n <新任务备注>"
             )
 
         matches = find_tasks(data, task_name)
@@ -56,12 +56,15 @@ async def handle_task_modify(cmd, raw_msg: str, data: dict, user_id: int, state:
             await cmd.finish("未找到相关任务")
 
         payload = {
-            "old_note": old_note,
             "new_note": new_note
         }
 
         await apply_or_wait(
-            cmd, data, user_id, state, matches,
+            cmd,
+            data,
+            user_id,
+            state,
+            matches,
             "todo_task_modify_note",
             payload
         )
@@ -166,7 +169,15 @@ async def apply_or_wait(
     payload: dict
 ):
     if len(matches) == 1:
-        await apply_task_action(cmd, data, user_id, matches[0], action, payload)
+        await apply_task_action(
+            cmd,
+            data,
+            user_id,
+            matches[0],
+            action,
+            payload
+        )
+        return
 
     state["pending_action"] = action
     state["candidates"] = matches
@@ -207,22 +218,23 @@ async def apply_task_action(
             continue
 
         if action == "todo_task_modify_name":
+            old_name = task["name"]
+
             push_history(
                 data,
-                action=f"修改任务名称: {task["name"]} → {payload["newname"]}"
+                action=f"修改任务名称: {old_name} → {payload['new_name']}"
             )
+
             task["name"] = payload["new_name"]
             save_todo(user_id, data)
             await cmd.finish(f"已修改任务名称: {task['name']}")
 
         elif action == "todo_task_modify_note":
-            if task.get("note", "") != payload["old_note"]:
-                await cmd.finish("原备注不匹配")
-
             push_history(
                 data,
-                action=f"修改备注: {payload["new_note"]}"
+                action=f"修改备注: {task['name']}"
             )
+
             task["note"] = payload["new_note"]
             save_todo(user_id, data)
             await cmd.finish(f"已修改任务备注: {task['name']}")
@@ -272,7 +284,7 @@ async def receive_task_choice(cmd, event: MessageEvent, state: T_State):
     choice = str(event.get_message()).strip()
 
     if not choice.isdigit():
-        await cmd.reject("请输入数字编号，例如：1")
+        await cmd.reject("请输入数字编号")
 
     matches = state["candidates"]
     user_id = state["user_id"]
