@@ -4,16 +4,31 @@ from nonebot.typing import T_State
 
 from .storage import load_todo
 from .branch import handle_branch
-from .add import handle_add
+from .add import handle_add, receive_add_choice
 from .done import handle_done, receive_done_choice
 from .task import handle_task, receive_task_choice
 from .revert import handle_revert
 from plugins.help import get_help
+from utils.pending_choice import handle_pending_choice
 
 todo_cmd = on_command("todo", priority=5, block=True)
 
 @todo_cmd.handle()
 async def _(event: MessageEvent, state: T_State):
+    handled = await handle_pending_choice(
+        todo_cmd,
+        event,
+        state,
+        [
+            receive_done_choice,
+            receive_task_choice,
+            receive_add_choice,
+        ]
+    )
+
+    if handled:
+        return
+
     raw_msg = str(event.get_message()).strip()
     args = raw_msg.split()
 
@@ -29,7 +44,7 @@ async def _(event: MessageEvent, state: T_State):
         await handle_branch(todo_cmd, args, raw_msg, data, user_id)
 
     elif action == "add":
-        await handle_add(todo_cmd, args, raw_msg, data, user_id)
+        await handle_add(todo_cmd, args, raw_msg, data, user_id, state)
 
     elif action == "done":
         await handle_done(todo_cmd, args, raw_msg, data, user_id, state)
@@ -45,13 +60,3 @@ async def _(event: MessageEvent, state: T_State):
 
     else:
         await todo_cmd.finish("未知 todo 子命令")
-
-@todo_cmd.receive()
-async def _(event: MessageEvent, state: T_State):
-    handled = await receive_done_choice(todo_cmd, event, state)
-    if handled:
-        return
-
-    handled = await receive_done_choice(todo_cmd, event, state)
-    if handled:
-        return
