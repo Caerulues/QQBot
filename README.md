@@ -8,7 +8,6 @@
   <img alt="Python" src="https://img.shields.io/badge/Python-3.11%2B-blue">
   <img alt="NoneBot" src="https://img.shields.io/badge/NoneBot-2.x-green">
   <img alt="OneBot" src="https://img.shields.io/badge/OneBot-v11-orange">
-  <img alt="Platform" src="https://img.shields.io/badge/Platform-macOS-lightgrey">
   <img alt="Minecraft" src="https://img.shields.io/badge/Minecraft-Java%20Server-brightgreen">
 </p>
 
@@ -216,7 +215,6 @@ WebSocket Connection from NapCat accepted.
 | `ddl list` | 查看截止任务 |
 | `ddl del` | 删除截止任务 |
 
-⸻
 
 ## 数据存储
 
@@ -229,8 +227,6 @@ data/
 ├─ ip/
 └─ help/
 ```
-
-⸻
 
 ## 项目结构
 
