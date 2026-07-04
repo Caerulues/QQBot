@@ -32,6 +32,11 @@ from core.config import config
 from core.font import load_font
 from core.command import get_cmd_start
 from core.parser import split_by_bar
+from utils.choice_prompt import (
+    ask_choice,
+    parse_choice,
+    format_ddl_candidate,
+)
 
 cmd_start = get_cmd_start()
 
@@ -326,19 +331,17 @@ async def _(event, state: T_State):
                 add(event.message_id, sent["message_id"])
                 return
 
-            state["pending_action"] = "mv_name"
-            state["candidates"] = matches
-            state["user_id"] = user_id
-            state["new_title"] = new_title
-
-            msg = "找到多个匹配项，请回复编号选择要修改哪一项：\n"
-            msg += "\n".join(
-                f"{i + 1}. {item['title']}"
-                for i, item in enumerate(matches)
+            await ask_choice(
+                ddl_cmd,
+                state,
+                action="mv_name",
+                candidates=matches,
+                user_id=user_id,
+                payload={"new_title": new_title},
+                title="找到多个匹配项，请回复编号选择要修改哪一项",
+                formatter=format_ddl_candidate,
             )
-
-            await ddl_cmd.send(msg)
-            await ddl_cmd.pause()
+            return
 
 
         elif mv_action == "-t":
@@ -383,19 +386,17 @@ async def _(event, state: T_State):
                 add(event.message_id, sent["message_id"])
                 return
 
-            state["pending_action"] = "mv_time"
-            state["candidates"] = matches
-            state["user_id"] = user_id
-            state["new_time"] = new_time
-
-            msg = "找到多个匹配项，请回复编号选择要修改哪一项：\n"
-            msg += "\n".join(
-                f"{i + 1}. {item['title']}"
-                for i, item in enumerate(matches)
+            await ask_choice(
+                ddl_cmd,
+                state,
+                action="mv_time",
+                candidates=matches,
+                user_id=user_id,
+                payload={"new_time": new_time},
+                title="找到多个匹配项，请回复编号选择要修改哪一项",
+                formatter=format_ddl_candidate,
             )
-
-            await ddl_cmd.send(msg)
-            await ddl_cmd.pause()
+            return
 
     # MARK: list
 
@@ -444,30 +445,23 @@ async def _(event, state: T_State):
             return
 
         if len(matches) == 1:
+            title = matches[0]["title"]
             data.remove(matches[0])
             save_data(DDL_PATH, user_id, data)
-            sent = await ddl_cmd.send(f"已删除: {matches[0]['title']}")
+            sent = await ddl_cmd.send(f"已删除: {title}")
             add(event.message_id, sent["message_id"])
             return
 
-        if len(matches) == 1:
-            data.remove(matches[0])
-            save_data(DDL_PATH, user_id, data)
-            sent = await ddl_cmd.send(f"已删除: {matches[0]['title']}")
-            add(event.message_id, sent["message_id"])
-
-        state["pending_action"] = "delete"
-        state["candidates"] = matches
-        state["user_id"] = user_id
-
-        msg = "找到多个匹配项，请回复编号选择需要删除的项目：\n"
-        msg += "\n".join(
-            f"{i + 1}. {item['title']}"
-            for i, item in enumerate(matches)
+        await ask_choice(
+            ddl_cmd,
+            state,
+            action="delete",
+            candidates=matches,
+            user_id=user_id,
+            title="找到多个匹配项，请回复编号选择需要删除的项目",
+            formatter=format_ddl_candidate,
         )
-
-        await ddl_cmd.send(msg)
-        await ddl_cmd.pause()
+        return
 
     # MARK: help
 
@@ -485,47 +479,65 @@ async def _(event: MessageEvent, state: T_State):
     if "pending_action" not in state:
         return
 
-    choice = str(event.get_message()).strip()
-
-    if not choice.isdigit():
-        await ddl_cmd.reject("请输入数字编号，例如：1")
-
     action = state["pending_action"]
-    matches = state["candidates"]
     user_id = state["user_id"]
+    payload = state.get("payload", {})
 
-    index = int(choice) - 1
+    index, target = await parse_choice(ddl_cmd, event, state)
 
-    if index < 0 or index >= len(matches):
-        await ddl_cmd.reject("编号不存在，请重新输入")
+    target_id = target.get("id")
 
-    target = matches[index]
+    if not target_id:
+        await ddl_cmd.finish("任务缺少 id，可能是旧数据，请重新创建该任务")
+
     data = load_data(DDL_PATH, user_id)
 
-    for item in data:
-        if item["id"] != target["id"]:
-            continue
+    target_index = None
+    target_item = None
 
-        if action == "delete":
-            data.remove(item)
-            save_data(DDL_PATH, user_id, data)
-            await ddl_cmd.finish(f"已删除：{item['title']}")
+    for i, item in enumerate(data):
+        if item.get("id") == target_id:
+            target_index = i
+            target_item = item
+            break
 
-        elif action == "mv_name":
-            item["title"] = state["new_title"]
-            save_data(DDL_PATH, user_id, data)
-            await ddl_cmd.finish(f"已修改任务名称：{item['title']}")
+    if target_index is None or target_item is None:
+        await ddl_cmd.finish("任务不存在，可能已被修改或删除")
 
-        elif action == "mv_time":
-            item["time"] = state["new_time"]
-            item["reminded_1w"] = False
-            item["reminded_1d"] = False
-            item["reminded_1h"] = False
+    if action == "delete":
+        title = target_item["title"]
 
-            save_data(DDL_PATH, user_id, data)
-            await ddl_cmd.finish(f"已修改DDL时间：{item['title']}")
+        del data[target_index]
 
-    await ddl_cmd.finish("任务不存在，可能已被修改或删除")
+        save_data(DDL_PATH, user_id, data)
+        await ddl_cmd.finish(f"已删除：{title}")
+
+    elif action == "mv_name":
+        new_title = payload.get("new_title")
+
+        if not new_title:
+            await ddl_cmd.finish("缺少新任务名称，请重新执行命令")
+
+        target_item["title"] = new_title
+
+        save_data(DDL_PATH, user_id, data)
+        await ddl_cmd.finish(f"已修改任务名称：{target_item['title']}")
+
+    elif action == "mv_time":
+        new_time = payload.get("new_time")
+
+        if not new_time:
+            await ddl_cmd.finish("缺少新DDL时间，请重新执行命令")
+
+        target_item["time"] = new_time
+        target_item["reminded_1w"] = False
+        target_item["reminded_1d"] = False
+        target_item["reminded_1h"] = False
+
+        save_data(DDL_PATH, user_id, data)
+        await ddl_cmd.finish(f"已修改DDL时间：{target_item['title']}")
+
+    await ddl_cmd.finish("未知操作")
 
 # MARK: 定时提醒
 

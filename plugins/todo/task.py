@@ -6,6 +6,11 @@ from .storage import load_todo, save_todo
 from .search import find_tasks
 from core.parser import split_by_bar
 from core.command import get_cmd_start
+from utils.choice_prompt import (
+    ask_choice,
+    parse_choice,
+    format_todo_candidate
+)
 
 cmd_start = get_cmd_start()
 
@@ -179,19 +184,16 @@ async def apply_or_wait(
         )
         return
 
-    state["pending_action"] = action
-    state["candidates"] = matches
-    state["user_id"] = user_id
-    state["payload"] = payload
-
-    msg = "找到多个匹配项，请回复编号选择任务：\n"
-    msg += "\n".join(
-        f"{i + 1}. {item['branch']} / {item['task']['name']}"
-        for i, item in enumerate(matches)
+    await ask_choice(
+        cmd,
+        state,
+        action=action,
+        candidates=matches,
+        user_id=user_id,
+        payload=payload,
+        title="找到多个匹配项，请回复编号选择任务",
+        formatter=format_todo_candidate,
     )
-
-    await cmd.send(msg)
-    await cmd.pause()
 
 
 async def apply_task_action(
@@ -204,7 +206,10 @@ async def apply_task_action(
 ):
     branch_name = target_item["branch"]
     target = target_item["task"]
-    target_id = target["id"]
+    target_id = target.get("id")
+
+    if not target_id:
+        await cmd.finish("任务缺少 id，可能是旧数据，请重新创建该任务")
 
     branches = data.get("branches", {})
 
@@ -213,60 +218,74 @@ async def apply_task_action(
 
     tasks = branches[branch_name]
 
-    for task in tasks:
-        if task.get("id") != target_id:
-            continue
+    target_index = None
+    target_task = None
 
-        if action == "todo_task_modify_name":
-            old_name = task["name"]
+    for i, task in enumerate(tasks):
+        if task.get("id") == target_id:
+            target_index = i
+            target_task = task
+            break
 
-            push_history(
-                data,
-                action=f"修改任务名称: {old_name} → {payload['new_name']}"
-            )
+    if target_index is None or target_task is None:
+        await cmd.finish("任务不存在，可能已被修改或删除")
 
-            task["name"] = payload["new_name"]
-            save_todo(user_id, data)
-            await cmd.finish(f"已修改任务名称: {task['name']}")
+    if action == "todo_task_modify_name":
+        old_name = target_task["name"]
 
-        elif action == "todo_task_modify_note":
-            push_history(
-                data,
-                action=f"修改备注: {task['name']}"
-            )
+        push_history(
+            data,
+            action=f"修改任务名称: {old_name} → {payload['new_name']}"
+        )
 
-            task["note"] = payload["new_note"]
-            save_todo(user_id, data)
-            await cmd.finish(f"已修改任务备注: {task['name']}")
+        target_task["name"] = payload["new_name"]
+        save_todo(user_id, data)
+        await cmd.finish(f"已修改任务名称: {target_task['name']}")
 
-        elif action == "todo_task_delete":
-            push_history(
-                data,
-                action=f"删除任务: {task['name']}"
-            )
-            tasks.remove(task)
-            save_todo(user_id, data)
-            await cmd.finish(f"已删除任务: {task['name']}")
+    elif action == "todo_task_modify_note":
+        push_history(
+            data,
+            action=f"修改备注: {target_task['name']}"
+        )
 
-        elif action == "todo_task_delete_note":
-            push_history(
-                data,
-                action=f"删除备注: {task['name']}"
-            )
-            task["note"] = ""
-            save_todo(user_id, data)
-            await cmd.finish(f"已删除任务备注: {task['name']}")
+        target_task["note"] = payload["new_note"]
+        save_todo(user_id, data)
+        await cmd.finish(f"已修改任务备注: {target_task['name']}")
 
-        elif action == "todo_task_repeat":
-            push_history(
-                data,
-                action=f"添加周期提醒：{task['name']}"
-            )
-            task["repeat"] = payload["repeat"]
-            save_todo(user_id, data)
-            await cmd.finish(f"已添加周期提醒: {task['name']}")
+    elif action == "todo_task_delete":
+        task_name = target_task["name"]
 
-    await cmd.finish("任务不存在，可能已被修改或删除")
+        push_history(
+            data,
+            action=f"删除任务: {task_name}"
+        )
+
+        del tasks[target_index]
+
+        save_todo(user_id, data)
+        await cmd.finish(f"已删除任务: {task_name}")
+
+    elif action == "todo_task_delete_note":
+        push_history(
+            data,
+            action=f"删除备注: {target_task['name']}"
+        )
+
+        target_task["note"] = ""
+        save_todo(user_id, data)
+        await cmd.finish(f"已删除任务备注: {target_task['name']}")
+
+    elif action == "todo_task_repeat":
+        push_history(
+            data,
+            action=f"添加周期提醒：{target_task['name']}"
+        )
+
+        target_task["repeat"] = payload["repeat"]
+        save_todo(user_id, data)
+        await cmd.finish(f"已添加周期提醒: {target_task['name']}")
+
+    await cmd.finish("未知任务操作")
 
 
 async def receive_task_choice(cmd, event: MessageEvent, state: T_State):
@@ -281,21 +300,19 @@ async def receive_task_choice(cmd, event: MessageEvent, state: T_State):
     ]:
         return False
 
-    choice = str(event.get_message()).strip()
-
-    if not choice.isdigit():
-        await cmd.reject("请输入数字编号")
-
-    matches = state["candidates"]
     user_id = state["user_id"]
     payload = state.get("payload", {})
 
-    index = int(choice) - 1
-
-    if index < 0 or index >= len(matches):
-        await cmd.reject("编号不存在，请重新输入")
+    _, target_item = await parse_choice(cmd, event, state)
 
     data = load_todo(user_id)
-    await apply_task_action(cmd, data, user_id, matches[index], action, payload)
+    await apply_task_action(
+        cmd,
+        data,
+        user_id,
+        target_item,
+        action,
+        payload,
+    )
 
     return True
