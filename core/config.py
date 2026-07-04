@@ -24,6 +24,9 @@ class MinecraftConfig:
     name: str
     status_address: str
     log_path: str
+    bot_ids: set[str]
+    ignore_player_ids: set[str]
+    translate_message: bool
     ping_target: str = "test6.ustc.edu.cn"
 
 @dataclass
@@ -78,6 +81,9 @@ def load_config() -> BotConfig:
             status_address=minecraft.get("status_address", f"127.0.0.1:{mc_port}"),
             log_path=minecraft.get("log_path", str(Path(server_path) / "logs/latest.log")),
             ping_target=minecraft.get("ping_target", "test6.ustc.edu.cn"),
+            bot_ids=set(minecraft.get("bot_ids", [])),
+            ignore_player_ids=set(minecraft.get("ignore_player_ids", [])),
+            translate_message=minecraft.get("translate_message", False),
         ),
         qq=QQConfig(
             admin_users=set(qq.get("admin_users", [])),

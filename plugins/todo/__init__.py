@@ -52,6 +52,8 @@ async def _(event: MessageEvent, state: T_State):
     if handled:
         return
 
-    handled = await receive_done_choice(todo_cmd, event, state)
+    handled = await receive_task_choice(todo_cmd, event, state)
     if handled:
         return
+
+    await todo_cmd.finish("未知选择状态，请重新执行命令")
