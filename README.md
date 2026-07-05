@@ -130,12 +130,9 @@ ws://127.0.0.1:8080/onebot/v11/ws
 创建 .env 文件：
 
 ```dotenv
-DRIVER=~fastapi+~websockets
 HOST=127.0.0.1
 PORT=8080
-COMMAND_START=["."]
-SUPERUSERS=["123456789"]
-ONEBOT_ACCESS_TOKEN=your_token
+COMMAND_START=["/"]
 ```
 
 说明：
