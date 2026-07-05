@@ -11,9 +11,11 @@
   <img alt="Minecraft" src="https://img.shields.io/badge/Minecraft-Java%20Server-brightgreen">
 </p>
 
-一个基于 NoneBot2 + OneBot v11 的个人 QQ Bot，面向家庭 Minecraft 服务器管理与日常效率场景设计。
+一个基于 NoneBot2 + OneBot v11 的个人 QQ Bot，面向 Minecraft 服务器管理与日常效率场景设计。
 
-QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraft 消息互通、todo 管理、DDL 提醒、IPv6 状态查看等功能，适合部署在个人电脑、家庭服务器或小型群服环境中使用。
+QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraft 消息互通、todo 管理、DDL 提醒、IPv6 状态查看等功能，适合部署在个人电脑、服务器上使用 (推荐使用Mac[^1])。
+
+[^1]:本项目在macOS上完成开发，暂未在Linux或Windows上测试
 
 ---
 
@@ -47,6 +49,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 ### DDL 提醒
 
 * 添加截止日期任务
+* 支持修改截止日期
 * 查看任务列表
 * 删除任务
 * 自动提醒
@@ -137,14 +140,11 @@ COMMAND_START=["/"]
 
 说明：
 
-|配置项|作用|
-| --- |--|
-|DRIVER|NoneBot 驱动|
-|HOST|Bot 监听地址|
-|PORT|Bot 监听端口|
-|COMMAND_START|指令前缀|
-|SUPERUSERS	Bot|管理员 QQ|
-|ONEBOT_ACCESS_TOKEN|OneBot Token|
+| 配置项                 | 作用           |
+|---------------------|--------------|
+| HOST                | Bot 监听地址     |
+| PORT                | Bot 监听端口     |
+| COMMAND_START       | 指令前缀         |
 
 ---
 
@@ -174,44 +174,70 @@ WebSocket Connection from NapCat accepted.
 
 如果修改了 COMMAND_START，请将前缀替换为对应字符。
 
-### 基础功能
+## 基础指令
 
-|指令|功能|
-|--|--|
-|`help`|查看帮助信息|
-|`echo`|测试 Bot 是否在线|
-|`ping`|查看网络与处理延迟|
-|`status`|查看系统状态|
-|`ipv6`|查看当前 IPv6 地址|
+| 指令       | 功能            |
+|----------|---------------|
+| `ddl`    | 任务截止日期功能模块    |
+| `todo`   | 待做任务功能模块      |
+| `echo`   | 测试是否在线        |
+| `ipv6`   | 显示当前 IPv6 地址  |
+| `ping`   | 测试当前网络及消息处理延迟 |
+| `status` | 显示当前系统状态      |
 
-### Minecraft
+## Minecraft 指令
 
-| 指令 | 功能 |
-| --- | --- |
-| `mcinfo` | 查看服务器状态 |
-| `run_server` | 启动 Minecraft 服务器 |
-| `stop_server` | 停止 Minecraft 服务器 |
+| 指令            | 功能                             |
+|---------------|--------------------------------|
+| `mcinfo`      | 显示当前 Minecraft 服务器状态           |
+| `run_server`  | 启动 Minecraft 服务器（需要 Bot 管理员权限） |
+| `stop_server` | 终止 Minecraft 服务器（需要 Bot 管理员权限） |
 
-其中服务器启停功能仅管理员可使用。
+## DDL 模块
 
-### Todo
+| 指令                               | 功能                  |
+|----------------------------------|---------------------|
+| `ddl add <任务名称> \| <截止时间>`       | 新增任务（支持自然语言时间和多行输入） |
+| `ddl mv -n <原任务名称> \| <新任务名称>`   | 修改任务名称              |
+| `ddl mv -t <原任务DDL> \| <新任务DDL>` | 修改任务截止时间            |
+| `ddl list`                       | 展示所有 DDL            |
+| `ddl del <任务名称>`                 | 删除任务                |
 
-| 指令 | 功能 |
-| --- | --- |
-| `todo add` | 添加任务 |
-| `todo list` | 查看任务 |
-| `todo done` | 完成任务 |
+## Todo 模块
+
+### 任务管理
+
+| 指令                              | 功能     |
+|---------------------------------|--------|
+| `todo add -t <任务类名称> \| <任务名称>` | 创建任务   |
+| `todo add -n <任务名称> \| <任务备注>`  | 添加任务备注 |
+| `todo done <任务名称>`              | 标记任务完成 |
+
+### 任务修改
+
+| 指令                                              | 功能      |
+|-------------------------------------------------|---------|
+| `todo task -m <原任务名称> \| <新任务名称>`               | 修改任务名称  |
+| `todo task -m <任务名称> -n <新任务备注>`                | 修改任务备注  |
+| `todo task -d <任务名称>`                           | 删除任务及备注 |
+| `todo task -d <任务名称> -n`                        | 仅删除任务备注 |
+| `todo task -r <任务名称> \| <频率（每天/每周/每月）> \| <次数>` | 添加周期提醒  |
+
+### 任务类管理
+
+| 指令                                    | 功能          |
+|---------------------------------------|-------------|
+| `todo branch <任务类名称>`                 | 创建任务类       |
+| `todo branch -a`                      | 查看所有任务类     |
+| `todo branch -l <任务类名称>`              | 查看任务类内容     |
+| `todo branch -m <原任务类名称> \| <新任务类名称>` | 修改任务类名称     |
+| `todo branch -d <任务类名称>`              | 删除任务类及其所有任务 |
+
+### 其他
+
+| 指令            | 功能      |
+|---------------|---------|
 | `todo revert` | 撤销上一次操作 |
-| `todo branch` | 管理任务分区 |
-
-### DDL
-
-| 指令 | 功能 |
-| --- | --- |
-| `ddl add` | 添加截止任务 |
-| `ddl list` | 查看截止任务 |
-| `ddl del` | 删除截止任务 |
-
 
 ## 数据存储
 
@@ -238,8 +264,6 @@ QQBot/
 ├─ config.toml
 └─ .env
 ```
-
- 其中：
 
 * plugins：Bot 指令插件；
 * mcserver：Minecraft 联动功能；
