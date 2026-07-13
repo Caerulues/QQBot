@@ -49,9 +49,96 @@ ddl_cmd = on_command("ddl", priority=5, block=True)
 
 # MARK: 命令处理
 
+async def handle_ddl_choice(
+    event: MessageEvent,
+    state: T_State,
+) -> None:
+    action = state["pending_action"]
+    user_id = state["user_id"]
+    payload = state.get("payload", {})
+
+    _, target = await parse_choice(
+        ddl_cmd,
+        event,
+        state,
+    )
+
+    target_id = target.get("id")
+
+    if not target_id:
+        await ddl_cmd.finish(
+            "任务不存在 id，可能已被修改或删除"
+        )
+
+    data = load_data(DDL_PATH, user_id)
+
+    target_index = None
+    target_item = None
+
+    for i, item in enumerate(data):
+        if item.get("id") == target_id:
+            target_index = i
+            target_item = item
+            break
+
+    if target_index is None or target_item is None:
+        await ddl_cmd.finish(
+            "任务不存在，可能已被修改或删除"
+        )
+
+    if action == "delete":
+        title = target_item["title"]
+
+        del data[target_index]
+        save_data(DDL_PATH, user_id, data)
+
+        await ddl_cmd.finish(f"已删除：{title}")
+
+    if action == "move_rename":
+        new_title = payload.get("new_title")
+
+        if not new_title:
+            await ddl_cmd.finish(
+                "缺少新任务名称，请重新执行命令"
+            )
+
+        target_item["title"] = new_title
+        save_data(DDL_PATH, user_id, data)
+
+        await ddl_cmd.finish(
+            f"已修改任务名称：{new_title}"
+        )
+
+    if action == "move_reschedule":
+        new_time = payload.get("new_time")
+
+        if new_time is None:
+            await ddl_cmd.finish(
+                "缺少新 DDL 时间，请重新执行命令"
+            )
+
+        target_item["time"] = new_time
+        target_item["reminded_1w"] = False
+        target_item["reminded_1d"] = False
+        target_item["reminded_1h"] = False
+
+        save_data(DDL_PATH, user_id, data)
+
+        await ddl_cmd.finish(
+            f"已修改 DDL 时间：{target_item['title']}"
+        )
+
+    await ddl_cmd.finish(
+        "未知选择状态，请重新执行命令"
+    )
+
 @ddl_cmd.handle()
-async def _(event: MessageEvent, state: T_State):
+async def _(
+    event: MessageEvent,
+    state: T_State,
+):
     if "pending_action" in state:
+        await handle_ddl_choice(event, state)
         return
 
     raw_msg = str(event.get_message()).strip()
@@ -318,80 +405,6 @@ async def _(event: MessageEvent, state: T_State):
     else:
         sent = await ddl_cmd.send("未知操作")
         add(event.message_id, sent["message_id"])
-
-@ddl_cmd.receive()
-async def _(event: MessageEvent, state: T_State):
-    if "pending_action" not in state:
-        return
-
-    action = state["pending_action"]
-    user_id = state["user_id"]
-    payload = state.get("payload", {})
-
-    _, target = await parse_choice(ddl_cmd, event, state)
-
-    target_id = target.get("id")
-
-    if not target_id:
-        clear_choice_state(state)
-        await ddl_cmd.finish("任务不存在 id，可能已被修改或删除")
-
-    data = load_data(DDL_PATH, user_id)
-
-    target_index = None
-    target_item = None
-
-    for i, item in enumerate(data):
-        if item.get("id") == target_id:
-            target_index = i
-            target_item = item
-            break
-
-    if target_index is None or target_item is None:
-        clear_choice_state(state)
-        await ddl_cmd.finish("任务不存在，可能已被修改或删除")
-
-    if action == "delete":
-        title = target_item["title"]
-
-        del data[target_index]
-        save_data(DDL_PATH, user_id, data)
-
-        clear_choice_state(state)
-        await ddl_cmd.finish(f"已删除：{title}")
-
-    elif action == "move_rename":
-        new_title = payload.get("new_title")
-
-        if not new_title:
-            clear_choice_state(state)
-            await ddl_cmd.finish("缺少新任务名称，请重新执行命令")
-
-        target_item["title"] = new_title
-        save_data(DDL_PATH, user_id, data)
-
-        clear_choice_state(state)
-        await ddl_cmd.finish(f"已修改任务名称：{target_item['title']}")
-
-    elif action == "move_reschedule":
-        new_time = payload.get("new_time")
-
-        if not new_time:
-            clear_choice_state(state)
-            await ddl_cmd.finish("缺少新 DDL 时间，请重新执行命令")
-
-        target_item["time"] = new_time
-        target_item["reminded_1w"] = False
-        target_item["reminded_1d"] = False
-        target_item["reminded_1h"] = False
-
-        save_data(DDL_PATH, user_id, data)
-
-        clear_choice_state(state)
-        await ddl_cmd.finish(f"已修改 DDL 时间：{target_item['title']}")
-
-    clear_choice_state(state)
-    await ddl_cmd.finish("未知操作")
 
 # MARK: 定时提醒
 
