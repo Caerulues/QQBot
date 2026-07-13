@@ -2,12 +2,12 @@ import asyncio
 import platform
 from typing import Optional
 
-from core.terminal_state import (
+from storage.minecraft_state import (
     save_minecraft_window_id,
     load_minecraft_window_id,
     clear_minecraft_window_id,
 )
-from core.config import config
+from config import config
 
 TERMINAL_TITLE = config.server.terminal_title
 

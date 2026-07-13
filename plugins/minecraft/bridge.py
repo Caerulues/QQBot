@@ -8,12 +8,14 @@ from nonebot.rule import is_type
 from mcrcon import MCRcon
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
-from core.config import config
+from config import config
 
 BRIDGE_GROUP_ID = config.qq.bridge_group_id
 RCON_HOST = config.rcon.host
 RCON_PORT = config.rcon.port
 RCON_PASSWORD = config.rcon.password
+BOT_IDS = config.minecraft.bot_ids
+IGNORE_PLAYER_IDS = config.minecraft.ignore_player_ids
 MC_LOG_PATH = Path(config.minecraft.log_path)
 QQ_TO_MC_PREFIX = "[QQ]"
 FORWARD_BOT_SELF = False
@@ -202,6 +204,8 @@ async def check_minecraft_chat_log():
                 continue
 
             player_name, message = parsed
+            if player_name in BOT_IDS or player_name in IGNORE_PLAYER_IDS:
+                continue
             await send_to_qq(player_name, message)
 
     except Exception as e:

@@ -7,14 +7,14 @@ from nonebot import get_driver, on_command, logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from mcrcon import MCRcon
 
-from core.java_monitor import has_java_process
-from core.terminal_control import (
+from services.minecraft.process_monitor import has_java_process
+from services.minecraft.terminal_control import (
     is_macos,
     open_minecraft_terminal,
     restore_minecraft_window_id,
     stop_minecraft_terminal,
 )
-from core.terminal_state import (
+from storage.minecraft_state import (
     clear_minecraft_pid,
     clear_minecraft_state,
     clear_minecraft_window_id,
@@ -22,8 +22,8 @@ from core.terminal_state import (
     save_minecraft_pid,
 )
 from utils.recall_map import add
-from utils.ipv6_monitor import start_ipv6_monitor, stop_ipv6_monitor
-from core.config import config
+from plugins.system.ipv6_monitor import start_ipv6_monitor, stop_ipv6_monitor
+from config import config
 
 driver = get_driver()
 
@@ -31,6 +31,7 @@ ALLOWED_USERS = config.qq.admin_users
 SERVER_PATH = config.server.path
 SERVER_COMMAND = config.server.command
 SERVER_LAUNCH_MODE = config.server.launch_mode.lower()
+IPV6_MONITOR_ENABLED = config.minecraft.enable_ipv6_monitor
 
 minecraft_window_id = None
 
@@ -126,7 +127,7 @@ async def restore_server_state_on_startup():
         logger.info(f"[server] 已恢复Minecraft子进程PID: {saved_pid}")
 
     # 即使服务器不是本次 Bot 通过 .run_server 启动，只要检测到 Java 服务端进程，IPv6 监控也会启动。
-    if has_java_process():
+    if IPV6_MONITOR_ENABLED and has_java_process():
         await start_ipv6_monitor(force_send=False)
 
 
@@ -140,8 +141,12 @@ async def _(event: MessageEvent):
         return
 
     if has_java_process():
-        await start_ipv6_monitor(force_send=True)
-        sent = await run_minecraft_server.send("Minecraft Server已在运行，IPv6监控已启动")
+        if IPV6_MONITOR_ENABLED:
+            await start_ipv6_monitor(force_send=True)
+        message = "Minecraft Server已在运行"
+        if IPV6_MONITOR_ENABLED:
+            message += "，IPv6监控已启动"
+        sent = await run_minecraft_server.send(message)
         add(event.message_id, sent["message_id"])
         return
 
@@ -160,7 +165,8 @@ async def _(event: MessageEvent):
         return
 
     if await wait_until_java_running(20):
-        await start_ipv6_monitor(force_send=True)
+        if IPV6_MONITOR_ENABLED:
+            await start_ipv6_monitor(force_send=True)
         sent = await run_minecraft_server.send("Minecraft Server已启动")
         add(event.message_id, sent["message_id"])
         return
@@ -180,7 +186,8 @@ async def _(event: MessageEvent):
         return
 
     if not has_java_process():
-        stop_ipv6_monitor()
+        if IPV6_MONITOR_ENABLED:
+            stop_ipv6_monitor()
         clear_minecraft_state()
         minecraft_window_id = None
         sent = await stop_minecraft_server.send("Minecraft Server未在运行")
@@ -213,7 +220,8 @@ async def _(event: MessageEvent):
         return
 
     if await wait_until_java_stopped(20):
-        stop_ipv6_monitor()
+        if IPV6_MONITOR_ENABLED:
+            stop_ipv6_monitor()
         clear_minecraft_state()
         minecraft_window_id = None
         sent = await stop_minecraft_server.send("Minecraft Server已停止")

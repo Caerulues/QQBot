@@ -3,15 +3,15 @@ from pathlib import Path
 
 from nonebot import get_bot, logger, require
 
-from core.ipv6 import get_ipv6
+from services.system.network_address import get_ipv6
 
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
 
-from core.config import config
+from config import config
 
 GROUP_IDS = config.qq.groups
-IP_FILE_PATH = Path(config.data_dir) / "ip"
+IP_FILE_PATH = Path(config.data_dir) / "runtime" / "ip"
 IP_FILE_PATH.mkdir(parents=True, exist_ok=True)
 
 JOB_ID = "minecraft_ipv6_monitor"

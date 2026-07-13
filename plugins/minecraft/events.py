@@ -8,7 +8,7 @@ from nonebot import get_bot, logger, require
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
 
-from core.config import config
+from config import config
 
 
 # MARK: 配置
@@ -22,9 +22,12 @@ CHECK_INTERVAL_SECONDS = 1
 MC_PREFIX = "[MC]"
 TRANSLATE_DEATH_MESSAGE = config.minecraft.translate_message
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEATH_MESSAGES_PATH = PROJECT_ROOT / "data" / "minecraft" / "assets" / "death_messages.json"
 CREATURE_PATH = PROJECT_ROOT / "data" / "minecraft" / "assets" / "creature.json"
+
+BOT_IDS = config.minecraft.bot_ids
+IGNORE_PLAYER_IDS = config.minecraft.ignore_player_ids
 
 
 # MARK: 玩家状态
@@ -224,12 +227,16 @@ def parse_mc_event(line: str) -> Optional[str]:
     join_match = JOIN_PATTERN.match(msg)
     if join_match:
         name = join_match.group(1)
+        if name in BOT_IDS or name in IGNORE_PLAYER_IDS:
+            return None
         ONLINE_PLAYERS.add(name)
         return f"{MC_PREFIX} {name} 加入了服务器"
 
     leave_match = LEAVE_PATTERN.match(msg)
     if leave_match:
         name = leave_match.group(1)
+        if name in BOT_IDS or name in IGNORE_PLAYER_IDS:
+            return None
         ONLINE_PLAYERS.discard(name)
         return f"{MC_PREFIX} {name} 离开了服务器"
 

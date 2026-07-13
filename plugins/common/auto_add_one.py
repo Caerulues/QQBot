@@ -2,7 +2,7 @@ from collections import defaultdict
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from utils.recall_map import add
-from core.config import config
+from config import config
 
 repeat = on_message(priority=5, block=False)
 

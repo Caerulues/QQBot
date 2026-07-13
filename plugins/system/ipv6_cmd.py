@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import MessageEvent
 
 from utils.recall_map import add
-from core.ipv6 import get_ipv6
+from services.system.network_address import get_ipv6
 
 ipv6_cmd = on_command("ipv6", priority=5)
 

@@ -17,10 +17,12 @@ port = 25565
 name = "Minecraft Server"
 status_address = "127.0.0.1:25565"
 log_path = ""
-bots_ids = []
+bot_ids = []
 ignore_player_ids = []
 translate_message = false
-ping_target = "test6.ustc.edu.cn"
+# 是否在 Minecraft 服务端运行时自动监控并通知 IPv6 地址变化
+enable_ipv6_monitor = true
+ping_target = ""
 
 [qq]
 admin_users = []

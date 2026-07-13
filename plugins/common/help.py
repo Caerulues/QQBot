@@ -9,9 +9,9 @@ from nonebot.params import CommandArg
 from nonebot.adapters.onebot.v11 import Message, MessageEvent, MessageSegment
 
 from utils.recall_map import add
-from core.config import config
-from core.font import load_font
-from utils.render_image import render_image
+from config import config
+from utils.font import load_font
+from utils.build_help_image import render_image
 
 HELP_PATH = Path(config.data_dir) / "help"
 HELP_PATH.mkdir(parents=True, exist_ok=True)

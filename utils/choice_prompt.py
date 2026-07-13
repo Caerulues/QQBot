@@ -4,7 +4,7 @@ from typing import Any, Callable
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.typing import T_State
 
-from utils.render_image import render_image
+from utils.build_help_image import render_image
 
 
 async def ask_choice(

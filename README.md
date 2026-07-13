@@ -1,35 +1,38 @@
 # QQBot: Cauxium
 
 <p>
-  <strong>一个面向个人 Minecraft 群服的 QQ 服务器管理 Bot</strong>
+  <strong>一个主要针对 Minecraft 群服的 综合性 QQ Bot</strong>
 </p>
 
 <p>
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.11%2B-blue">
-  <img alt="NoneBot" src="https://img.shields.io/badge/NoneBot-2.x-green">
-  <img alt="OneBot" src="https://img.shields.io/badge/OneBot-v11-orange">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.11%2B-yellow">
+  <img alt="NoneBot" src="https://img.shields.io/badge/NoneBot-2.x-blue">
+  <img alt="OneBot" src="https://img.shields.io/badge/OneBot-v11-white">
   <img alt="Minecraft" src="https://img.shields.io/badge/Minecraft-Java%20Server-brightgreen">
 </p>
 
 一个基于 NoneBot2 + OneBot v11 的个人 QQ Bot，面向 Minecraft 服务器管理与日常效率场景设计。
 
-QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraft 消息互通、todo 管理、DDL 提醒、IPv6 状态查看等功能，适合部署在个人电脑、服务器上使用 (推荐使用Mac[^why])。
+Cauxium 提供指令控制 Minecraft 服务器启停[^1]、服务器状态查询、QQ 与 Minecraft 消息互通、待做事项管理、DDL 提醒、Bot IPv6 地址查看等功能(推荐使用Mac[^2])。
 
-[^why]:本项目在macOS上完成开发，暂未在Linux或Windows上测试
+[^1]:需要执行指令的QQ用户在config.local.toml的admin_users列表内
+[^2]:本项目在macOS上完成开发，暂未在Linux或Windows上测试
 
 ---
 
 ## 功能特性
 
-### Minecraft 服务器管理
+### Minecraft 服务器
 
 * 启动 Minecraft 服务器
 * 停止 Minecraft 服务器
 * 查询服务器在线状态
 * 查看在线玩家列表
-* 获取延迟、TPS、MSPT 等运行信息
+* 获取延迟、TPS、MSPT 等运行信息[^3]
 
-### QQ &larr;&rarr; Minecraft 联动
+[^3]:若Cauxium和Minecraft服务器运行在同一台设备上，默认 ping 的对象是中国科技大学测速网站的IPv6网速网站
+
+### QQ 与 Minecraft 服务器群服互联
 
 * QQ 消息转发至 Minecraft 游戏内聊天
 * Minecraft 聊天同步至 QQ
@@ -37,7 +40,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 * 玩家退出服务器通知
 * 玩家死亡消息同步
 
-### Todo 管理
+### 待做事项管理
 
 * 添加待办事项
 * 查看待办列表
@@ -51,6 +54,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 * 添加截止日期任务
 * 支持修改截止日期
 * 查看任务列表
+* 支持模糊搜索
 * 删除任务
 * 自动提醒
 
@@ -59,8 +63,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 * Bot 在线测试
 * 网络延迟测试
 * IPv6 地址查询
-* 系统运行状态查看
-* 帮助菜单
+* 设备 CPU 和 内存占用查询
 
 ---
 
@@ -69,7 +72,7 @@ QQBot 提供 Minecraft 服务器启停、服务器状态查询、QQ ↔ Minecraf
 推荐环境：
 
 * Python 3.14+
-* macOS（已在 macOS 上完成主要测试）
+* macOS（在 macOS 上完成部署测试）
 * QQ + NapCat
 * NoneBot2
 * OneBot v11
@@ -153,7 +156,7 @@ COMMAND_START=["/"]
 
 ### 配置 Minecraft
 
-将 config_example.toml 重命名为: config.toml，并按需填写
+将 config.example.toml 复制为 `config.toml`，并按需填写
 
 ---
 
@@ -164,11 +167,10 @@ COMMAND_START=["/"]
 python bot.py
 ```
 
-当控制台出现类似输出时，即表示启动成功：
+当控制台出现如下输出时，即表示启动成功：
 
 ```commandline
 Application startup complete.
-WebSocket Connection from NapCat accepted.
 ```
 
 ---
@@ -198,33 +200,33 @@ WebSocket Connection from NapCat accepted.
 
 ## DDL 模块
 
-| 指令                               | 功能                  |
-|----------------------------------|---------------------|
-| `ddl add <任务名称> \| <截止时间>`       | 新增任务（支持自然语言时间和多行输入） |
-| `ddl mv -n <原任务名称> \| <新任务名称>`   | 修改任务名称              |
-| `ddl mv -t <原任务DDL> \| <新任务DDL>` | 修改任务截止时间            |
-| `ddl list`                       | 展示所有 DDL            |
-| `ddl del <任务名称>`                 | 删除任务                |
+| 指令                                                                               | 功能                  |
+|----------------------------------------------------------------------------------|---------------------|
+| `ddl add <任务名称> \| <截止时间>`                                                       | 新增任务（支持自然语言时间和多行输入） |
+| `ddl mv -rn <原任务名称> \| <新任务名称>`<br/>`ddl mv --rename <原任务名称> \| <新任务名称>`         | 修改任务名称              |
+| `ddl mv -rs <原任务DDL> \| <新任务DDL>`<br/>`ddl mv --reschedule <原任务DDL> \| <新任务DDL>` | 修改任务截止时间            |
+| `ddl list`                                                                       | 展示所有 DDL            |
+| `ddl del <任务名称>`                                                                 | 删除任务                |
 
 ## Todo 模块
 
 ### 任务管理
 
-| 指令                              | 功能     |
-|---------------------------------|--------|
-| `todo add -t <任务类名称> \| <任务名称>` | 创建任务   |
-| `todo add -n <任务名称> \| <任务备注>`  | 添加任务备注 |
-| `todo done <任务名称>`              | 标记任务完成 |
+| 指令                                                                      | 功能     |
+|-------------------------------------------------------------------------|--------|
+| `todo add -t <任务类名称> \| <任务名称>`<br/>`todo add --task <任务类名称> \| <任务名称>` | 创建任务   |
+| `todo add -n <任务名称> \| <任务备注>`<br/>`todo add --note <任务名称> \| <任务备注>`   | 添加任务备注 |
+| `todo done <任务名称>`                                                      | 标记任务完成 |
 
 ### 任务修改
 
-| 指令                                              | 功能      |
-|-------------------------------------------------|---------|
-| `todo task -m <原任务名称> \| <新任务名称>`               | 修改任务名称  |
-| `todo task -m <任务名称> -n <新任务备注>`                | 修改任务备注  |
-| `todo task -d <任务名称>`                           | 删除任务及备注 |
-| `todo task -d <任务名称> -n`                        | 仅删除任务备注 |
-| `todo task -r <任务名称> \| <频率（每天/每周/每月）> \| <次数>` | 添加周期提醒  |
+| 指令                                                                            | 功能      |
+|-------------------------------------------------------------------------------|---------|
+| `todo task -r <原任务名称> \| <新任务名称>` | 修改任务名称  |
+| `todo task -r <任务名称> -n <新任务备注>`        | 修改任务备注  |
+| `todo task -d <任务名称>`                                                         | 删除任务及备注 |
+| `todo task -d <任务名称> -n`                                                      | 仅删除任务备注 |
+| `todo task -r <任务名称> \| <频率（每天/每周/每月）> \| <次数>`                               | 添加周期提醒  |
 
 ### 任务类管理
 
@@ -248,31 +250,41 @@ WebSocket Connection from NapCat accepted.
 
 ```text
 data/
-├─ todo/
-├─ deadlines/
-├─ ip/
-└─ help/
+├─ todo/                 # Todo 用户数据
+├─ ddl/                  # DDL 用户数据
+├─ help/                 # 帮助文本
+├─ minecraft/assets/     # Minecraft 翻译资源
+└─ runtime/ip/           # IPv6 运行状态
 ```
 
 ## 项目结构
 
 ```text
 QQBot/
-├─ bot.py
-├─ plugins/
-├─ mcserver/
-├─ core/
-├─ utils/
-├─ data/
-├─ config.toml
-└─ .env
+├── bot.py
+├── config/                 # 配置模型和加载器
+├── plugins/                # NoneBot Matcher 与事件入口
+│   ├── common/
+│   ├── system/
+│   ├── minecraft/
+│   ├── todo/
+│   └── ddl/
+├── services/               # 处理消息部分
+├── storage/                # JSON、状态和任务数据持久化
+├── utils/                  # 通用工具
+├── data/                   # 本地运行数据
+├── scripts/                # 部署与更新辅助脚本
+├── config.example.toml     # 配置模板
+├── config.local.toml       # 本地配置
+└── .env                    # 本地环境变量
 ```
 
-* plugins：Bot 指令插件；
-* mcserver：Minecraft 联动功能；
-* core：核心配置与底层实现；
-* utils：辅助工具；
-* data：运行时数据。
+* `plugins`：只放会参与 NoneBot 加载的插件入口和消息处理器；
+* `services`：放网络检测、Minecraft 进程控制、Todo 搜索与历史等业务逻辑；
+* `storage`：放 JSON、Todo 数据和 Minecraft 运行状态读写；
+* `utils`：放命令解析、字体、图片渲染、候选选择等通用工具；
+* `config`：放配置数据模型和 `config.toml` 加载逻辑；
+* `data`：放运行数据与静态 JSON 资源。
 
 ---
 
@@ -301,7 +313,7 @@ QQBot/
 
 ### Bot 无法撤回消息
 
-QQ 私聊通常不支持 Bot 撤回消息。
+QQ 私聊不支持 Bot 撤回消息。
 
 群聊环境下可正常使用撤回功能。
 
@@ -314,6 +326,14 @@ QQ 私聊通常不支持 Bot 撤回消息。
 * config.toml 中的启动命令；
 * Java 是否已安装；
 * Terminal 权限是否允许自动化控制。
+
+---
+
+## TODO List
+
+- 为QQBot管理加上GUI
+- Minecraft服务器管理的多服务器支持
+- Minecraft服务器管理的异地开服支持
 
 ---
 

@@ -1,10 +1,5 @@
 import uuid
 import json
-import jionlp as jio
-
-from PIL import Image, ImageDraw
-import io
-import textwrap
 
 from pathlib import Path
 from datetime import datetime
@@ -23,196 +18,32 @@ require("nonebot_plugin_apscheduler")
 
 from nonebot_plugin_apscheduler import scheduler
 
-from plugins.help import get_help
-from core.json_store import (
+from plugins.common.help import get_help
+from storage.json_storage import (
     load_data,
     save_data
 )
-from core.config import config
-from core.font import load_font
-from core.command import get_cmd_start
-from core.parser import split_by_bar
+from config import config
+from utils.command import get_cmd_start
+from utils.parser import split_by_bar
 from utils.choice_prompt import (
     ask_choice,
     parse_choice,
     format_ddl_candidate,
 )
+from .remind_level_checker import (
+    should_remind,
+    mark_current_and_wider_stages,
+)
+from .time_parser import parse_ddl_line
+from .build_ddl_image import build_ddl_image
 
 cmd_start = get_cmd_start()
 
-DDL_PATH = Path(config.data_dir) / "deadlines"
+DDL_PATH = Path(config.data_dir) / "ddl"
 DDL_PATH.mkdir(parents=True, exist_ok=True)
 
 ddl_cmd = on_command("ddl", priority=5, block=True)
-
-# MARK: 提醒规则（动态）
-
-REMIND_STAGES = [
-    (0, "remind_now", "now"),
-    (3600, "reminded_1h", "1h"),
-    (86400, "reminded_1d", "1d"),
-    (7 * 86400, "reminded_1w", "1w"),
-]
-
-def should_remind(item, remain):
-    if remain <= 0:
-        return None
-
-    for index, (threshold, flag, tag) in enumerate(REMIND_STAGES):
-        if remain <= threshold:
-            if item.get(flag, False):
-                return None
-
-            return index, tag
-
-    return None
-
-def mark_current_and_wider_stages(item, current_index: int):
-    for _, flag, _ in REMIND_STAGES[current_index:]:
-        item[flag] = True
-
-# MARK: 时间处理
-
-def parse_ddl_line(text: str):
-    try:
-        parts = text.rsplit(" ", 1)
-
-        if len(parts) != 2:
-            return None
-
-        title = parts[0].strip()
-        time_str = parts[1].strip()
-
-        result = jio.parse_time(
-            time_str,
-            time_base=datetime.now()
-        )
-
-        if not result:
-            return None
-
-        start_time = result["time"][0]
-
-        if isinstance(start_time, datetime):
-            ddl_time = start_time
-
-        else:
-            ddl_time = datetime.strptime(
-                start_time,
-                "%Y-%m-%d %H:%M:%S"
-            )
-
-        return {
-            "title": title,
-            "time": ddl_time
-        }
-
-    except Exception as e:
-        print(f"[Parse Error] {e}")
-        return None
-
-# MARK: 图片生成
-
-def build_ddl_image(data):
-    width = 1000
-    padding = 40
-    row_h = 70
-
-    base_font_size = 32
-
-    if len(data) > 10:
-        base_font_size = 24
-
-    if len(data) > 20:
-        base_font_size = 16
-
-    font = load_font(base_font_size)
-
-    height = padding * 2 + 80 + len(data) * row_h
-
-    img = Image.new("RGB", (width, height), (255, 255, 255))
-    draw = ImageDraw.Draw(img)
-
-    y = padding
-
-    # 表头
-    draw.text((padding + 10, y + 8), "UUID", font=font, fill=(0, 0, 0))
-    draw.text((padding + 200, y + 8), "TITLE", font=font, fill=(0, 0, 0))
-    draw.text((padding + 550, y + 8), "DEADLINE", font=font, fill=(0, 0, 0))
-    draw.text((padding + 800, y + 8), "REMAIN", font=font, fill=(0, 0, 0))
-
-    y += 50
-
-    for item in data:
-        remain = int(item["time"] - datetime.now().timestamp())
-
-        if remain < 0:
-            color = (255, 80, 80)
-
-        elif remain < 86400:
-            color = (255, 180, 0)
-
-        else:
-            color = (0, 0, 0)
-
-        if remain < 0:
-            remain_text = "EXPIRED"
-
-        else:
-            days = remain // 86400
-            hours = (remain % 86400) // 3600
-            minutes = (remain % 3600) // 60
-
-            if days > 0:
-                remain_text = f"{days}d {hours}h"
-
-            else:
-                remain_text = f"{hours}h {minutes}m"
-
-        dt = datetime.fromtimestamp(
-            item["time"]
-        ).strftime("%m-%d %H:%M")
-
-        draw.text(
-            (padding + 10, y),
-            item["id"],
-            font=font,
-            fill=color
-        )
-
-        title_lines = textwrap.wrap(
-            item["title"],
-            width=12
-        )
-
-        for i, line in enumerate(title_lines[:2]):
-            draw.text(
-                (padding + 200, y + i * 26),
-                line,
-                font=font,
-                fill=color
-            )
-
-        draw.text(
-            (padding + 550, y),
-            dt,
-            font=font,
-            fill=color
-        )
-
-        draw.text(
-            (padding + 800, y),
-            remain_text,
-            font=font,
-            fill=color
-        )
-
-        y += row_h
-
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-
-    return buf.getvalue()
 
 # MARK: 命令处理
 
@@ -302,7 +133,7 @@ async def _(event, state: T_State):
 
         mv_action = mv_args[0]
 
-        if mv_action == "-n":
+        if mv_action == "-rn" or mv_action == "rename":
             content = raw_msg.replace(f"{cmd_start}ddl mv -n", "", 1).strip()
             old_title, new_title = split_by_bar(content)
 
@@ -334,7 +165,7 @@ async def _(event, state: T_State):
             await ask_choice(
                 ddl_cmd,
                 state,
-                action="mv_name",
+                action="move_rename",
                 candidates=matches,
                 user_id=user_id,
                 payload={"new_title": new_title},
@@ -344,7 +175,7 @@ async def _(event, state: T_State):
             return
 
 
-        elif mv_action == "-t":
+        elif mv_action == "-rs" or mv_action == "--reschedule":
             content = raw_msg.replace(f"{cmd_start}ddl mv -t", "", 1).strip()
             title, time_str = split_by_bar(content)
 
@@ -389,7 +220,7 @@ async def _(event, state: T_State):
             await ask_choice(
                 ddl_cmd,
                 state,
-                action="mv_time",
+                action="move_reschedule",
                 candidates=matches,
                 user_id=user_id,
                 payload={"new_time": new_time},
@@ -488,7 +319,7 @@ async def _(event: MessageEvent, state: T_State):
     target_id = target.get("id")
 
     if not target_id:
-        await ddl_cmd.finish("任务缺少 id，可能是旧数据，请重新创建该任务")
+        await ddl_cmd.finish("任务不存在id，可能已被修改或删除")
 
     data = load_data(DDL_PATH, user_id)
 
@@ -512,7 +343,7 @@ async def _(event: MessageEvent, state: T_State):
         save_data(DDL_PATH, user_id, data)
         await ddl_cmd.finish(f"已删除：{title}")
 
-    elif action == "mv_name":
+    elif action == "move_rename":
         new_title = payload.get("new_title")
 
         if not new_title:
@@ -523,7 +354,7 @@ async def _(event: MessageEvent, state: T_State):
         save_data(DDL_PATH, user_id, data)
         await ddl_cmd.finish(f"已修改任务名称：{target_item['title']}")
 
-    elif action == "mv_time":
+    elif action == "move_reschedule":
         new_time = payload.get("new_time")
 
         if not new_time:

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from core.config import config
+from config import config
 
 TERMINAL_STATE_PATH = Path(config.data_dir) / "server_terminal.json"
 TERMINAL_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)

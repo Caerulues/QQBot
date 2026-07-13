@@ -4,7 +4,7 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 
 from utils.recall_map import add
-from core.config import config
+from config import config
 
 ping = on_command("ping", priority=5, block=True)
 

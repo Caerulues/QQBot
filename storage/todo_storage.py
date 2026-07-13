@@ -1,6 +1,7 @@
+from copy import deepcopy
 from pathlib import Path
-from core.config import config
-from core.json_store import load_data, save_data
+from config import config
+from storage.json_storage import load_data, save_data
 
 TODO_PATH = Path(config.data_dir) / "todo"
 TODO_PATH.mkdir(parents=True, exist_ok=True)
@@ -14,7 +15,7 @@ def load_todo(user_id: int):
     data = load_data(TODO_PATH, user_id)
 
     if not data:
-        return DEFAULT_DATA.copy()
+        return deepcopy(DEFAULT_DATA)
 
     data.setdefault("branches", {})
     data.setdefault("history", [])

@@ -17,7 +17,7 @@ mc_info = on_command(
     block=True
 )
 
-from core.config import config
+from config import config
 
 PING_TARGET = config.minecraft.ping_target
 MC_STATUS_ADDRESS = config.minecraft.status_address

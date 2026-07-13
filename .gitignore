@@ -11,6 +11,7 @@ env/
 
 # macOS
 .DS_Store
+__MACOSX/
 
 # PyCharm
 .idea/
@@ -18,10 +19,15 @@ env/
 # Local secrets
 .env
 config.toml
-data/deadlines
-data/ip
-data/todo
+config.local.toml
+data/ddl/
+data/runtime/ip
+data/todo/
 logs/
 .cache/
 *.log
-__MACOSX/
+scripts/
+
+# ignored markdown files
+PRODUCTION_SYNC.md
+PROJECT_STRUCTURE.md
