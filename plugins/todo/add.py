@@ -35,7 +35,7 @@ async def handle_add(
     # add -t <任务类名称> | <任务名称>
     if sub == "-t" or sub == "--task":
         content = re.sub(
-            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:=-t|--task)\s*",
+            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:-t|--task)\s*",
             "",
             raw_msg,
             count=1
@@ -69,7 +69,7 @@ async def handle_add(
     # add -n <任务名称> | <任务备注>
     elif sub == "-n" or sub == "--note":
         content = re.sub(
-            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:=-n|--note)\s*",
+            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:-n|--note)\s*",
             "",
             raw_msg,
             count=1

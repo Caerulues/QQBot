@@ -39,7 +39,7 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
 
     elif sub == "-l" or sub == "--list":
         content = re.sub(
-            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-l|--list)\s*",
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:-l|--list)\s*",
             "",
             raw_msg,
             count=1
@@ -81,7 +81,7 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
 
     elif sub == "-m" or sub == "--modify":
         content = re.sub(
-            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-m|--modify)\s*",
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:-m|--modify)\s*",
             "",
             raw_msg,
             count=1
@@ -111,7 +111,7 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
 
     elif sub == "-d" or sub == "--delete":
         content = re.sub(
-            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-d|--delete)\s*",
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:-d|--delete)\s*",
             "",
             raw_msg,
             count=1
