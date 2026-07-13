@@ -1,4 +1,5 @@
 import uuid
+import re
 
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.typing import T_State
@@ -32,8 +33,13 @@ async def handle_add(
     branches = data.setdefault("branches", {})
 
     # add -t <任务类名称> | <任务名称>
-    if sub == "-t":
-        content = raw_msg.replace(f"{cmd_start}todo add -t", "", 1).strip()
+    if sub == "-t" or sub == "--task":
+        content = re.sub(
+            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:=-t|--task)\s*",
+            "",
+            raw_msg,
+            count=1
+        ).strip()
         branch_name, task_name = split_by_bar(content)
 
         if not branch_name or not task_name:
@@ -61,8 +67,13 @@ async def handle_add(
         await cmd.finish(f"已添加任务: {task_name}")
 
     # add -n <任务名称> | <任务备注>
-    elif sub == "-n":
-        content = raw_msg.replace(f"{cmd_start}todo add -n", "", 1).strip()
+    elif sub == "-n" or sub == "--note":
+        content = re.sub(
+            rf"^{re.escape(cmd_start)}todo\s+add\s+(?:=-n|--note)\s*",
+            "",
+            raw_msg,
+            count=1
+        ).strip()
         task_name, note = split_by_bar(content)
 
         if not task_name or not note:

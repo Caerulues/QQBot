@@ -1,5 +1,6 @@
 import uuid
 import json
+import re
 
 from pathlib import Path
 from datetime import datetime
@@ -134,12 +135,17 @@ async def _(event, state: T_State):
         mv_action = mv_args[0]
 
         if mv_action == "-rn" or mv_action == "rename":
-            content = raw_msg.replace(f"{cmd_start}ddl mv -n", "", 1).strip()
+            content = re.sub(
+                rf"^{re.escape(cmd_start)}ddl\s+mv\s+(?:=-rn|--rename)\s*",
+                "",
+                raw_msg,
+                count=1
+            ).strip()
             old_title, new_title = split_by_bar(content)
 
             if not old_title or not new_title:
                 sent = await ddl_cmd.send(
-                    f"格式：{cmd_start}ddl mv -n <原任务名称> | <新任务名称>"
+                    f"格式：{cmd_start}ddl mv -rn <原任务名称> | <新任务名称>"
                 )
                 add(event.message_id, sent["message_id"])
                 return
@@ -176,12 +182,17 @@ async def _(event, state: T_State):
 
 
         elif mv_action == "-rs" or mv_action == "--reschedule":
-            content = raw_msg.replace(f"{cmd_start}ddl mv -t", "", 1).strip()
+            content = re.sub(
+                rf"^{re.escape(cmd_start)}ddl\s+mv\s+(?:=-rn|--reschedule)\s*",
+                "",
+                raw_msg,
+                count=1
+            ).strip()
             title, time_str = split_by_bar(content)
 
             if not title or not time_str:
                 sent = await ddl_cmd.send(
-                    f"格式：{cmd_start}ddl mv -t <任务名称> | <新DDL>"
+                    f"格式：{cmd_start}ddl mv -rs <任务名称> | <新DDL>"
                 )
                 add(event.message_id, sent["message_id"])
                 return

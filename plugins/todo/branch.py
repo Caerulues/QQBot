@@ -1,3 +1,5 @@
+import re
+
 from storage.todo_storage import save_todo
 from services.todo.history import push_history
 from utils.parser import split_by_bar
@@ -14,7 +16,7 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
     sub = args[2]
     branches = data.setdefault("branches", {})
 
-    if sub == "-a":
+    if sub == "-a" or sub == "--all":
         if not branches:
             await cmd.finish("当前没有任务类")
 
@@ -35,8 +37,13 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
         await cmd.finish(MessageSegment.image(image_bytes))
 
 
-    elif sub == "-l":
-        content = raw_msg.replace(f"{cmd_start}todo branch -l", "", 1).strip()
+    elif sub == "-l" or sub == "--list":
+        content = re.sub(
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-l|--list)\s*",
+            "",
+            raw_msg,
+            count=1
+        ).strip()
 
         if not content:
             await cmd.finish(f"格式：{cmd_start}todo branch -l <任务类名称>")
@@ -72,8 +79,13 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
         image_bytes = render_image(lines)
         await cmd.finish(MessageSegment.image(image_bytes))
 
-    elif sub == "-m":
-        content = raw_msg.replace(f"{cmd_start}todo branch -m", "", 1).strip()
+    elif sub == "-m" or sub == "--modify":
+        content = re.sub(
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-m|--modify)\s*",
+            "",
+            raw_msg,
+            count=1
+        ).strip()
         old_name, new_name = split_by_bar(content)
 
         if not old_name or not new_name:
@@ -97,8 +109,13 @@ async def handle_branch(cmd, args: list[str], raw_msg: str, data: dict, user_id:
         save_todo(user_id, data)
         await cmd.finish(f"已将任务类 {old_name} 改名为 {new_name}")
 
-    elif sub == "-d":
-        content = raw_msg.replace(f"{cmd_start}todo branch -d", "", 1).strip()
+    elif sub == "-d" or sub == "--delete":
+        content = re.sub(
+            rf"^{re.escape(cmd_start)}todo\s+branch\s+(?:=-d|--delete)\s*",
+            "",
+            raw_msg,
+            count=1
+        ).strip()
 
         if not content:
             await cmd.finish(f"格式：{cmd_start}todo branch -d <任务类名称>")
