@@ -55,7 +55,7 @@ async def _(event, state: T_State):
     args = raw_msg.split()
 
     if len(args) < 2:
-        sent = ddl_cmd.send(get_help("ddl"))
+        sent = await ddl_cmd.send(get_help("ddl"))
         add(event.message_id, sent["message_id"])
         return
 
