@@ -1,21 +1,4 @@
-import time
-from .storage import save_todo
-
-
-def push_history(data: dict, action: str):
-    import copy
-
-    snapshot = {
-        "branches": copy.deepcopy(data.get("branches", {})),
-        "action": action,
-        "time": int(time.time())
-    }
-
-    history = data.setdefault("history", [])
-    history.append(snapshot)
-
-    if len(history) > 10:
-        history.pop(0)
+from storage.todo_storage import save_todo
 
 
 async def handle_revert(cmd, data: dict, user_id: int):

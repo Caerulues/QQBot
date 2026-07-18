@@ -1,6 +1,6 @@
 import io
 from PIL import Image, ImageDraw
-from core.font import load_font
+from utils.font import load_font
 
 
 def split_line(line: str) -> tuple[str, str]:

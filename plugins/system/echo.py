@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import MessageEvent
 
 from utils.recall_map import add
-from core.command import get_cmd_start
+from utils.command import get_cmd_start
 
 cmd_start = get_cmd_start()
 

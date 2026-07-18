@@ -4,7 +4,7 @@ from typing import Any, Callable
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.typing import T_State
 
-from utils.render_image import render_image
+from utils.build_help_image import render_image
 
 
 async def ask_choice(
@@ -69,3 +69,9 @@ def format_todo_candidate(i: int, item: dict, note_label: str = "备注") -> str
 def format_ddl_candidate(i: int, item: dict) -> str:
     time_text = datetime.fromtimestamp(item["time"]).strftime("%Y-%m-%d %H:%M")
     return f"{i + 1}. {item['title']} - {time_text}"
+
+def clear_choice_state(state: T_State):
+    state.pop("pending_action", None)
+    state.pop("candidates", None)
+    state.pop("user_id", None)
+    state.pop("payload", None)

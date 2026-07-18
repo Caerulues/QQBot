@@ -1,55 +1,39 @@
+import os
 from pathlib import Path
 import tomllib
-from dataclasses import dataclass
+
+from .models import (
+    BotConfig,
+    MinecraftConfig,
+    QQConfig,
+    RconConfig,
+    ServerConfig,
+)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CONFIG_PATH = BASE_DIR / "config.toml"
 
-@dataclass
-class ServerConfig:
-    path: str
-    command: str
-    terminal_title: str
-    launch_mode: str = "auto"
 
-@dataclass
-class RconConfig:
-    host: str
-    port: int
-    password: str
+def resolve_config_path() -> Path:
+    configured_path = os.getenv("QQBOT_CONFIG")
+    if configured_path:
+        path = Path(configured_path).expanduser()
+        return path if path.is_absolute() else BASE_DIR / path
 
-@dataclass
-class MinecraftConfig:
-    port: int
-    name: str
-    status_address: str
-    log_path: str
-    bot_ids: set[str]
-    ignore_player_ids: set[str]
-    translate_message: bool
-    ping_target: str = "test6.ustc.edu.cn"
+    local_path = BASE_DIR / "config.local.toml"
+    if local_path.exists():
+        return local_path
 
-@dataclass
-class QQConfig:
-    admin_users: set[int]
-    groups: set[int]
-    bridge_group_id: int | None
-    event_group_id: int | None
-    bot_ids: set[int]
-    ping_user_id: int | None = None
+    return BASE_DIR / "config.toml"
 
-@dataclass
-class BotConfig:
-    server: ServerConfig
-    rcon: RconConfig
-    minecraft: MinecraftConfig
-    qq: QQConfig
-    data_dir: str = "data"
+
+CONFIG_PATH = resolve_config_path()
+
 
 def load_config() -> BotConfig:
     if not CONFIG_PATH.exists():
         raise FileNotFoundError(
-            "缺少 config.toml。请复制 config.example.toml 为 config.toml，并填写本机配置。"
+            "缺少配置文件。请复制 config.example.toml 为 config.local.toml，并填写本机配置。"
         )
 
     with open(CONFIG_PATH, "rb") as f:
@@ -84,6 +68,7 @@ def load_config() -> BotConfig:
             bot_ids=set(minecraft.get("bot_ids", [])),
             ignore_player_ids=set(minecraft.get("ignore_player_ids", [])),
             translate_message=minecraft.get("translate_message", False),
+            enable_ipv6_monitor=minecraft.get("enable_ipv6_monitor", True),
         ),
         qq=QQConfig(
             admin_users=set(qq.get("admin_users", [])),

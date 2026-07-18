@@ -1,11 +1,13 @@
+import re
+
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.typing import T_State
 
-from .revert import push_history
-from .storage import load_todo, save_todo
-from .search import find_tasks
-from core.parser import split_by_bar
-from core.command import get_cmd_start
+from services.todo.history import push_history
+from storage.todo_storage import load_todo, save_todo
+from services.todo.search import find_tasks
+from utils.parser import split_by_bar
+from utils.command import get_cmd_start
 from utils.choice_prompt import (
     ask_choice,
     parse_choice,
@@ -27,13 +29,13 @@ async def handle_task(
 
     sub = args[2]
 
-    if sub == "-m":
+    if sub in ("-m", "--modify"):
         await handle_task_modify(cmd, raw_msg, data, user_id, state)
 
-    elif sub == "-d":
+    elif sub in ("-d", "--delete"):
         await handle_task_delete(cmd, raw_msg, data, user_id, state)
 
-    elif sub == "-r":
+    elif sub in ("-r", "--routine"):
         await handle_task_repeat(cmd, raw_msg, data, user_id, state)
 
     else:
@@ -41,11 +43,20 @@ async def handle_task(
 
 
 async def handle_task_modify(cmd, raw_msg: str, data: dict, user_id: int, state: T_State):
-    content = raw_msg.replace(f"{cmd_start}todo task -m", "", 1).strip()
+    content = re.sub(
+        rf"^{re.escape(cmd_start)}todo\s+task\s+(?:-m|--modify)\s*",
+        "",
+        raw_msg,
+        count=1
+    ).strip()
 
     # task -m <任务名称> -n <新备注>
-    if " -n " in content:
-        task_name, new_note = content.split(" -n ", 1)
+    if re.search(r"\s(?:-n|--note)\s", content):
+        task_name, new_note = re.split(
+            r"\s+(?:-n|--note)\s+",
+            content,
+            maxsplit=1
+        )
 
         task_name = task_name.strip()
         new_note = new_note.strip()
@@ -98,7 +109,12 @@ async def handle_task_modify(cmd, raw_msg: str, data: dict, user_id: int, state:
 
 
 async def handle_task_delete(cmd, raw_msg: str, data: dict, user_id: int, state: T_State):
-    content = raw_msg.replace(f"{cmd_start}todo task -d", "", 1).strip()
+    content = re.sub(
+        rf"^{re.escape(cmd_start)}todo\s+task\s+(?:-d|--delete)\s*",
+        "",
+        raw_msg,
+        count=1
+    ).strip()
 
     # task -d <任务名称> -n
     delete_note_only = content.endswith(" -n")
@@ -128,7 +144,12 @@ async def handle_task_delete(cmd, raw_msg: str, data: dict, user_id: int, state:
 
 
 async def handle_task_repeat(cmd, raw_msg: str, data: dict, user_id: int, state: T_State):
-    content = raw_msg.replace(f"{cmd_start}todo task -r", "", 1).strip()
+    content = re.sub(
+        rf"^{re.escape(cmd_start)}todo\s+task+(?:-r|--routine)\s*",
+        "",
+        raw_msg,
+        count=1
+    )
     parts = content.split()
 
     if len(parts) < 3:

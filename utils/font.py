@@ -1,7 +1,7 @@
 import platform
 from PIL import ImageFont
 from pathlib import Path
-from core.config import config
+from config import config
 
 PROJECT_FONT = Path(config.data_dir) / "fonts" / "NotoSansSC-Regular.ttf"
 
