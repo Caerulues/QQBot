@@ -157,7 +157,7 @@ COMMAND_START=["/"]
 
 模块位于 Caerulues/QQBot-minecraft-interconnection 仓库。
 
-Bot端需要在data
+Bot端需要修改 data/minecraft/minecraft_config.example.json 配置，并重命名为minecraft_config.json 
 
 ---
 
