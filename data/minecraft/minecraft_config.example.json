@@ -1,0 +1,15 @@
+{
+  "host": "127.0.0.1",
+  "port": 3030,
+  "token": "",
+  "command_start": "/",
+  "bridge_groups": {
+  },
+  "event_groups": {
+  },
+  "admin_users": [
+  ],
+  "forward_commands": false,
+  "server_name_map": {
+  }
+}

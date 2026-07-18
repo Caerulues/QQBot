@@ -27,3 +27,4 @@ logs/
 .cache/
 *.log
 scripts/
+minecraft_config.json

@@ -1,29 +1,5 @@
 data_dir = "data"
 
-[server]
-path = ""
-command = "java -Xms1024M -Xmx4096M -jar server.jar nogui"
-terminal_title = "MINECRAFT_SERVER_TERMINAL"
-# auto: macOS 使用 Terminal，Windows/Linux 使用 subprocess；也可设为 terminal 或 subprocess
-launch_mode = "auto"
-
-[rcon]
-host = "127.0.0.1"
-port = 25575
-password = ""
-
-[minecraft]
-port = 25565
-name = "Minecraft Server"
-status_address = "127.0.0.1:25565"
-log_path = ""
-bot_ids = []
-ignore_player_ids = []
-translate_message = false
-# 是否在 Minecraft 服务端运行时自动监控并通知 IPv6 地址变化
-enable_ipv6_monitor = true
-ping_target = ""
-
 [qq]
 admin_users = []
 groups = []
