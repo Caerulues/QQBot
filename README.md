@@ -153,7 +153,11 @@ COMMAND_START=["/"]
 
 ### 配置 Minecraft
 
-将 config.example.toml 复制为 `config.toml`，并按需填写
+在运行Minecraft Server的设备上运行Minecraft Server Agent模块。
+
+模块位于 Caerulues/QQBot-minecraft-interconnection 仓库。
+
+Bot端需要在data
 
 ---
 
@@ -297,32 +301,11 @@ QQBot/
 
 ---
 
-### 无法获取 Minecraft 状态
-
-请确认：
-
-* Minecraft 服务器已启动；
-* 端口配置正确；
-* 防火墙允许访问；
-* RCON 已开启。
-
----
-
 ### Bot 无法撤回消息
 
 QQ 私聊不支持 Bot 撤回消息。
 
 群聊环境下可正常使用撤回功能。
-
----
-
-### macOS 无法启动 Minecraft
-
-请检查：
-
-* config.toml 中的启动命令；
-* Java 是否已安装；
-* Terminal 权限是否允许自动化控制。
 
 ---
 
