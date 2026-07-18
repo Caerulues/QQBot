@@ -145,12 +145,9 @@ COMMAND_START=["/"]
 
 | 配置项                 | 作用           |
 |---------------------|--------------|
-| DRIVER              | NoneBot 驱动   |
 | HOST                | Bot 监听地址     |
 | PORT                | Bot 监听端口     |
 | COMMAND_START       | 指令前缀         |
-| SUPERUSERS	Bot      | 管理员 QQ       |
-| ONEBOT_ACCESS_TOKEN | OneBot Token |
 
 ---
 
@@ -279,12 +276,12 @@ QQBot/
 └── .env                    # 本地环境变量
 ```
 
-* `plugins`：只放会参与 NoneBot 加载的插件入口和消息处理器；
-* `services`：放网络检测、Minecraft 进程控制、Todo 搜索与历史等业务逻辑；
-* `storage`：放 JSON、Todo 数据和 Minecraft 运行状态读写；
-* `utils`：放命令解析、字体、图片渲染、候选选择等通用工具；
-* `config`：放配置数据模型和 `config.toml` 加载逻辑；
-* `data`：放运行数据与静态 JSON 资源。
+* `plugins`：参与 NoneBot 加载的插件入口和消息处理器；
+* `services`：网络检测、Todo 搜索与历史等；
+* `storage`：JSON、Todo 数据读写；
+* `utils`：命令解析、字体、图片渲染、候选选择等通用工具；
+* `config`：配置数据模型和 `config.toml` 加载逻辑；
+* `data`：运行数据与静态 JSON 资源。
 
 ---
 
@@ -331,10 +328,10 @@ QQ 私聊不支持 Bot 撤回消息。
 
 ## TODO List
 
-- 为QQBot管理加上GUI
-- Minecraft服务器管理的多服务器支持
-- Minecraft服务器管理的异地开服支持
-
+- [ ] 为QQBot管理加上GUI
+- [ ] Minecraft服务器管理的多服务器支持
+- [x] Minecraft服务器管理的异地开服支持[^4]
+[^4]:模块位于Caerulues/QQBot-minecraft-interconnection
 ---
 
 ## License
