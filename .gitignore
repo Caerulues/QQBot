@@ -27,7 +27,3 @@ logs/
 .cache/
 *.log
 scripts/
-
-# ignored markdown files
-PRODUCTION_SYNC.md
-PROJECT_STRUCTURE.md
