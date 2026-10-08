@@ -314,7 +314,9 @@ QQ 私聊不支持 Bot 撤回消息。
 - [ ] 为QQBot管理加上GUI
 - [ ] Minecraft服务器管理的多服务器支持
 - [x] Minecraft服务器管理的异地开服支持[^4]
+
 [^4]:模块位于Caerulues/QQBot-minecraft-interconnection
+
 ---
 
 ## License
